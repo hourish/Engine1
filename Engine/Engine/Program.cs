@@ -10,7 +10,8 @@ namespace Engine
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("hayush");
+            ReadFile rf = new ReadFile(@"C:\Users\Shani\Desktop\שנה ג\סמסטר א\אחזור מידע\מנוע\dugma");
+            rf.Seperate();
         }
     }
 }
