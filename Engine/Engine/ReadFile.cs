@@ -9,7 +9,6 @@ namespace Engine
     class ReadFile
     {
         string path;
-        int a;
         public ReadFile(string path)
         {
             this.path = path;
