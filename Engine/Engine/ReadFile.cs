@@ -33,7 +33,7 @@ namespace Engine
                     docNum.Add(match.Groups[1].Value);
             }
             //    string del = @"\<DOCNO\>(.*?)\<\/TEXT\>";
-            //string del = @"\b\<DOCNO\>+\s\<\/TEXT\>+\b";
+            //string del = @"\b\<DOCNO\>+\s\<\/TEXT\>+\b"
             //string del = Regex.Escape("<DOCNO>") + "(.*?)" + Regex.Escape("</TEXT>");
           /*  string docNo = "<DOCNO>(.*?)</DOCNO>";
             string doc = "<DOC>(.*?)</DOC>";
