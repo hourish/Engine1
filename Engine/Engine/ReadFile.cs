@@ -24,32 +24,24 @@ namespace Engine
 
             string[] filesPaths = System.IO.Directory.GetFiles(path, "*.*", System.IO.SearchOption.AllDirectories);
             string[] fileText = new string[filesPaths.Length];
-            Regex rDOCNO = new Regex(Regex.Escape("<DOCNO>") + "(.*?)" + Regex.Escape("</DOCNO>"));
-            Regex rTEXT = new Regex(Regex.Escape("<TEXT>") + "(.*?)" + Regex.Escape("</TEXT>"));
             for (int i = 0; i < filesPaths.Length; i++)
             {
                 fileText[i] = File.ReadAllText(filesPaths[i]);
-                MatchCollection matchesDOCNO = rDOCNO.Matches(fileText[i]);
-                MatchCollection matchesTEXT = rTEXT.Matches(fileText[i]);
-               // foreach (Match match in matchesDOCNO)
-               //     docNum.Add(match.Groups[1].Value);
-                foreach (Match match in matchesTEXT)
-                    docTEXT.Add(match.Groups[1].Value);
+                Match matchTEXT = Regex.Match(fileText[i], Regex.Escape("<TEXT>") + "(.*?)" + Regex.Escape("</TEXT>"), RegexOptions.Singleline, Regex.InfiniteMatchTimeout);
+                while (matchTEXT.Success)
+                {
+                    docTEXT.Add(matchTEXT.Groups[1].Value);
+                    matchTEXT = matchTEXT.NextMatch();
+                }
 
-                Match matchNo = rDOCNO.Match(fileText[i]);
+                Match matchNo = Regex.Match(fileText[i], Regex.Escape("<DOCNO>") + "(.*?)" + Regex.Escape("</DOCNO>"), RegexOptions.Singleline, Regex.InfiniteMatchTimeout);
                 while(matchNo.Success)
                 {
                     docNum.Add(matchNo.Groups[1].Value);
                     matchNo = matchNo.NextMatch();
                 }
             }
-            //    string del = @"\<DOCNO\>(.*?)\<\/TEXT\>";
-            //string del = @"\b\<DOCNO\>+\s\<\/TEXT\>+\b"
-            //string del = Regex.Escape("<DOCNO>") + "(.*?)" + Regex.Escape("</TEXT>");
-          /*  string docNo = "<DOCNO>(.*?)</DOCNO>";
-            string doc = "<DOC>(.*?)</DOC>";
-            docNum.AddRange(Regex.Split(fileText[0], docNo));
-            docs.AddRange(Regex.Split(fileText[0], doc));*/
+
         }
     }
 }
