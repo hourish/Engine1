@@ -1,61 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
+using System.Collections;
+using System.Text.RegularExpressions;
 
 namespace Engine
 {
     class ReadFile
     {
         string path;
+        Parser parser;
         public ReadFile(string path)
         {
             this.path = path;
+            parser = new Parser(path + "\\stop_words.txt");
         }
 
         public void Seperate()
         {
-         
-            String[]files=System.IO.Directory.GetFiles(path,"*.*",System.IO.SearchOption.AllDirectories);
-            List<String> innerFiles = new List<string>();
-            for (int i=0; i<files.Length;i++)
+           string[] filesPaths = System.IO.Directory.GetFiles(path, "*.*", System.IO.SearchOption.AllDirectories);
+
+            for (int i = 0; i < filesPaths.Length; i++)
             {
-                String current = File.ReadAllText(files[i]);
-                 
-                String line = "";
-                //innerFiles.Add(File.ReadAllText(files[i]));
-                //while (current.Equals("")
-                  //  {
-                    //  int begining= current.IndexOf("")
-                //}
-                /*
-                using (StreamReader file = new StreamReader(files[i]))
+                string fileText = File.ReadAllText(filesPaths[i]);
+                Match matchTEXT = Regex.Match(fileText, Regex.Escape("<DOCNO>") + "(.*?)" + Regex.Escape("</TEXT>"), RegexOptions.Singleline, Regex.InfiniteMatchTimeout);
+                while (matchTEXT.Success)
                 {
-                    
-                    bool begining = false;
-                    while ((line= file.ReadLine()) != null)
-                    {
-                       // begining =true;
-                        if (line.Equals("<DOC>"))
-                        {
-                            while (!line.Equals("</DOC>"))
-                            {
-                                //if(begining)
-                                current += file.ReadLine();
-                            }                       
-                               innerFiles.Add(current);
-                        }
-                    }
+                    parser.Parse(matchTEXT.Groups[1].Value);
+                    matchTEXT = matchTEXT.NextMatch();
                 }
-                */
-
-        }
-            
-            
-            Console.WriteLine("hey");
-
+            }
         }
     }
 }
