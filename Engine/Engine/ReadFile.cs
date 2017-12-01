@@ -24,7 +24,7 @@ namespace Engine
            string[] filesPaths = System.IO.Directory.GetFiles(path, "*.*", System.IO.SearchOption.AllDirectories);
 
             for (int i = 0; i < filesPaths.Length; i++)
-            {
+            {//
                 string fileText = File.ReadAllText(filesPaths[i]);
                 Match matchTEXT = Regex.Match(fileText, Regex.Escape("<DOCNO>") + "(.*?)" + Regex.Escape("</TEXT>"), RegexOptions.Singleline, Regex.InfiniteMatchTimeout);
                 while (matchTEXT.Success)
