@@ -20,20 +20,11 @@ namespace Engine
 
         public String[][] Parse(String[] files)
         {
-            int num = files.Length; 
-            terms = new string[num][];
-            for(int i=0; i<num; i++)
-            {
-                string pattern = "\t";
-                terms[i]=Regex.Split(files[i],pattern);
-                /*
-                for (int j = 0; j < terms[i].Length; j++)
-                {
-                    String input = terms[i][j];
-                    if (System.Text.RegularExpressions.Regex.IsMatch()
-                }
-                */
-            }
+            //int num = files.Length; 
+            //terms = new string[num][];
+            String dugma = "th12 , MAY 1991";
+            String pattern= @"[^ JANUARY, February,MARCH" 
+             dugma = Regex.Match.r; 
             return terms;
         }
 
