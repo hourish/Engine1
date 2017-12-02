@@ -17,6 +17,38 @@ namespace Engine
             details = new Dictionary<Document, ArrayList>();
         }
 
-       // public addDoc(D)
+        // public addDoc(D)
+        /// <summary>
+        /// determinide a term hash code according to his name
+        /// </summary>
+        /// <returns>integer, hash code of a term</returns>
+        public override int GetHashCode()
+        {
+            return name.GetHashCode();
+        }
+        /// <summary>
+        /// compare to terms according to there name 
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns>true- if two terms have the same name 
+        /// false- if two terms dosent have the same name</returns>
+        public override bool Equals(object obj)
+        {
+            return name.Equals(((Term)obj).name);
+        }
+        /// <summary>
+        /// update the details dictionary of a term.
+        /// </summary>
+        /// <param name="currentDoc"></param>
+        /// <param name="position"></param> the position of the term in currentDoc
+        public void updateDetails(Document currentDoc, int position)
+        {
+            if (!details.ContainsKey(currentDoc))
+            {
+                details.Add(currentDoc, new ArrayList());
+            }
+            details[currentDoc].Add(position);
+        }
+
     }
 }
