@@ -10,15 +10,6 @@ namespace Engine
 {
     class Parser
     {
-
-        HashSet<string> stopWords = new HashSet<string>();
-        //HashSet<Term> terms = new HashSet<Term>();
-        int documentLengthCounter = 0;
-        public Parser(string path)
-        {
-           ReadStopWords(path);
-        }
-
         private HashSet<string> stopWords = new HashSet<string>();
         //private HashSet<Term> terms = new HashSet<Term>();
         private int documentCurrentPosition = 0;
@@ -30,19 +21,11 @@ namespace Engine
         /// <param name="str"></param> a text to parse
         public void Parse(string str)
         {
-            
-            documentLengthCounter = 0;
             char[] delimeters = { ' ', '\n', '\r' };
             string[] words = str.Split(delimeters);
-<<<<<<< HEAD
-            int test= capitalLetterCase(new Document("d1"),words[0],0, words);
-            Document currentDoc = new Document(words[1]);//because str started after <DOCNO>
-            for (int i = 2; i < words.Length; i++)
-=======
             Document currentDoc = new Document(words[1]);//because str started after <DOCNO>     
             int startOfText = 0;
             for (int i = 2; i < words.Length; i++)//loop for the documnet's date the to find the begining of the text
->>>>>>> bcad1fad3d817c9d5aa2fe019f0238d4da2fe472
             {
                 string currentWord = words[i];
                 if (currentWord == "" || (stopWords.Contains(currentWord) && Char.IsLower(currentWord[0]))) // if empty line or stopWord
@@ -81,10 +64,7 @@ namespace Engine
                 }
             }//second for
         }
-<<<<<<< HEAD
-=======
 
->>>>>>> bcad1fad3d817c9d5aa2fe019f0238d4da2fe472
         /// <summary>
         /// updatind the date field for any document object
         /// </summary>
@@ -92,11 +72,7 @@ namespace Engine
         /// <param name="words"></param> string of the document's data
         /// <param name="i"></param> index of the current place in the document
         /// <returns>the current position in the documment</returns>
-<<<<<<< HEAD
-        private int DateCase(Document currentDoc, string[] words, int i)
-=======
         private int DocDate(Document currentDoc, string[] words, int i)
->>>>>>> bcad1fad3d817c9d5aa2fe019f0238d4da2fe472
         {
             string currentWord = words[i];
             int day = 0, month = 0, year = 0;
@@ -177,15 +153,10 @@ namespace Engine
                 return 0;
         }
 
-<<<<<<< HEAD
-        /// param- path to the stop words list's folder 
-       /// read the stop words list from the given path and save them in Hash set
-=======
         /// <summary>
         /// read the file of the stopwords according to the path and update the hash set
         /// </summary>
         /// <param name="path"></param>
-
         private void ReadStopWords(string path)
         {
             StreamReader sr = new StreamReader(path);
@@ -196,114 +167,6 @@ namespace Engine
             }
             sr.Close();
         }
-<<<<<<< HEAD
-        // fix terms including numbers according to the rulls
-        private void NumberCase(Document currentDoc, string currentWord, int i)
-        {
-            int index = 0;
-            string temp = currentWord.Substring(0, 1);//the first char of the string
-            if (double.TryParse(temp, out double d) && !currentWord.Contains("th")) //check if the first char is a number
-            {
-                if (currentWord.Contains("."))//check if the number is neede to be round
-                {
-                    if (!(currentWord.Contains("%") || currentWord.Contains("percentage") || (currentWord.Contains("percent"))))// cases like 10.567
-                    {
-                        d = Double.Parse(currentWord);
-                        d = Math.Round(d, 2);
-                        addTerm(currentDoc, "" + d, i);
-                    }
-                    else
-                    {
-                        if (currentWord.Contains("%"))// cases like 10.675%
-                        {
-                            index = currentWord.IndexOf("%");
-                        }
-                        else // cases 10.567precent and 10.567precentege
-                        {
-                            index = currentWord.IndexOf("p");
-                        }
-                        currentWord = currentWord.Substring(0, index);
-                        d = Double.Parse(currentWord);
-                        d = Math.Round(d, 2);
-                        addTerm(currentDoc, d + "percent", i);
-                    }
-                }// if cases need to be round
-                else
-                {
-                    if (currentWord.Contains("%"))
-                    {
-                        index = currentWord.IndexOf("%");
-                    }
-                    else if (currentWord.Contains("percentage"))
-                    {
-                        index = currentWord.IndexOf("p");
-                    }
-                    currentWord = currentWord.Substring(0, index);
-                    currentWord = currentWord + "percent";
-                    addTerm(currentDoc, currentWord, i);
-                }
-            }// if the term contain number
-        }
-
-        /// <summary>
-        /// add new term to the collection and updating the term and document's details accordingly
-        /// </summary>
-        /// <param name="currentDoc"></param>
-        /// <param name="termName"></param>
-        /// <param name="position"></param> the position of the term in the current document
-        private void addTerm(Document currentDoc, string termName, int position)
-        {
-            Term t = new Term(termName);
-            t.updateDetails(currentDoc, position);
-            currentDoc.addTerm(t);
-            //send to indexer
-        }
-
-        private int capitalLetterCase(Document currentDoc, string currentWord, int i , string[]words)
-        {
-            if (!currentWord.ToLower().Equals(currentWord))
-            {
-                currentWord = currentWord.ToLower();
-                if (i + 1 < words.Length)
-                {
-                    if (words[i + 1].ToLower().Equals(words[i + 1]))
-                    {
-                        addTerm(currentDoc, currentWord, i);
-                        i = i + 1;
-                    }
-                    else
-                    {
-                        string temp = "";
-                        int position = i;
-                        while (!words[i + 1].ToLower().Equals(words[i + 1]))
-                        {
-
-                            temp = temp +" "+ currentWord;
-                            addTerm(currentDoc, currentWord, i);
-                            currentWord = words[i + 1];
-                            currentWord = currentWord.ToLower();
-                            i = i + 1;
-                            if(i+1==words.Length)
-                            {
-                                break;
-                            }
-                        }
-
-                        addTerm(currentDoc, temp, position);
-                    }
-                }
-                else
-                {
-                    addTerm(currentDoc, currentWord, i);
-                    i = i + 1;
-                }
-            }
-            return i;
-        }
-
-    }// parses class 
-}// namespace
-=======
 
         /// <summary>
         /// add terms with capital letters according to the rules
@@ -451,4 +314,3 @@ namespace Engine
 
     }  
 }
->>>>>>> bcad1fad3d817c9d5aa2fe019f0238d4da2fe472

@@ -17,7 +17,20 @@ namespace Engine
             details = new Dictionary<Document, ArrayList>();
         }
 
-        // public addDoc(D)
+        /// <summary>
+        /// update the details dictionary of a term.
+        /// </summary>
+        /// <param name="currentDoc"></param>
+        /// <param name="position"></param> the position of the term in currentDoc
+        public void updateDetails(Document currentDoc, int position)
+        {
+            if(!details.ContainsKey(currentDoc))
+            {
+                details.Add(currentDoc, new ArrayList());
+            }
+            details[currentDoc].Add(position);
+        }
+
         /// <summary>
         /// determinide a term hash code according to his name
         /// </summary>
@@ -36,19 +49,5 @@ namespace Engine
         {
             return name.Equals(((Term)obj).name);
         }
-        /// <summary>
-        /// update the details dictionary of a term.
-        /// </summary>
-        /// <param name="currentDoc"></param>
-        /// <param name="position"></param> the position of the term in currentDoc
-        public void updateDetails(Document currentDoc, int position)
-        {
-            if (!details.ContainsKey(currentDoc))
-            {
-                details.Add(currentDoc, new ArrayList());
-            }
-            details[currentDoc].Add(position);
-        }
-
     }
 }

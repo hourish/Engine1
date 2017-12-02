@@ -37,6 +37,19 @@ namespace Engine
         {
             this.length = length;
         }
+        
+        /// <summary>
+        /// add term to the arraylist only if its new (unique)
+        /// </summary>
+        /// <param name="term"></param>
+        public void addTerm(Term term)
+        {
+            if(!terms.Contains(term))
+            {
+                terms.Add(term);
+            }
+        }
+
         /// <summary>
         /// compare to terms according to there name 
         /// </summary>
@@ -47,17 +60,5 @@ namespace Engine
         {
             return name.Equals(((Document)obj).name);
         }
-        /// <summary>
-        /// add term to the arraylist only if its new (unique)
-        /// </summary>
-        /// <param name="term"></param>
-        public void addTerm(Term term)
-        {
-            if (!terms.Contains(term))
-            {
-                terms.Add(term);
-            }
-        }
-
     }
 }
