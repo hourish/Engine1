@@ -21,6 +21,7 @@ namespace Engine
         /// <param name="str"></param> a text to parse
         public void Parse(string str)
         {
+            Console.WriteLine("working");
             char[] delimeters = { ' ', '\n', '\r' };
             string[] words = str.Split(delimeters);
             Document currentDoc = new Document(words[1]);//because str started after <DOCNO>     
