@@ -37,5 +37,28 @@ namespace Engine
         {
             this.length = length;
         }
+        
+        /// <summary>
+        /// add term to the arraylist only if its new (unique)
+        /// </summary>
+        /// <param name="term"></param>
+        public void addTerm(Term term)
+        {
+            if(!terms.Contains(term))
+            {
+                terms.Add(term);
+            }
+        }
+
+        /// <summary>
+        /// compare to terms according to there name 
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns>true- if two terms have the same name 
+        /// false- if two terms dosent have the same name</returns>
+        public override bool Equals(object obj)
+        {
+            return name.Equals(((Document)obj).name);
+        }
     }
 }
