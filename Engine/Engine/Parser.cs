@@ -17,10 +17,9 @@ namespace Engine
            ReadStopWords(path);
         }
         /// <summary>
-        /// 
-        /// 
+        /// divide a text into terms according to the engine rulls
         /// </summary>
-        /// <param name="str"></param>
+        /// <param name="str"></param> a text to parse
         public void Parse(string str)
         {
             char[] delimeters = { ' ', '\n', '\r' };
