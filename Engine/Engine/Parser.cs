@@ -16,6 +16,11 @@ namespace Engine
         {
            ReadStopWords(path);
         }
+        /// <summary>
+        /// 
+        /// 
+        /// </summary>
+        /// <param name="str"></param>
         public void Parse(string str)
         {
             char[] delimeters = { ' ', '\n', '\r' };
@@ -32,7 +37,13 @@ namespace Engine
                 }
             }
         }
-
+        /// <summary>
+        /// updatind the date field for any document object
+        /// </summary>
+        /// <param name="currentDoc"></param> a document to update its date
+        /// <param name="words"></param> string of the document's data
+        /// <param name="i"></param> index of the current place in the document
+        /// <returns></returns>
         private int DateCase(Document currentDoc, string[] words, int i)
         {
             string currentWord = words[i];
@@ -105,7 +116,8 @@ namespace Engine
                 return 0;
         }
 
-
+        /// param- path to the stop words list's folder 
+       /// read the stop words list from the given path and save them in Hash set
         private void ReadStopWords(string path)
         {
             StreamReader sr = new StreamReader(path);
@@ -115,7 +127,7 @@ namespace Engine
                 stopWords.Add(line);
             }
         }
-
+        // fix terms including numbers according to the rulls
         private string NumberCase(string term)
         {
             int index;
