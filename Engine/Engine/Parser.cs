@@ -11,10 +11,10 @@ namespace Engine
     class Parser
     {
         private HashSet<string> stopWords = new HashSet<string>();
-        //private HashSet<Term> terms = new HashSet<Term>();
+        private HashSet<Term> terms = new HashSet<Term>(); // לא בטוח שצריך
         private int documentCurrentPosition = 0;
         public Parser(string path) => ReadStopWords(path);
-
+    HashSet<char> signs=  new HashSet<char>{ '!', '?', ':', ',', '.', '[', ']', '(', ')', '{', '}', '.', '"'};
         /// <summary>
         /// divide a text into terms according to the engine rulls
         /// </summary>
@@ -73,38 +73,13 @@ namespace Engine
                 } 
                 else  if( stopWords.Contains(words[i])) // if empty line or stopWord
                     continue;
-             //   if (words[i][0]('$'))
-              //  {
-                    //dolar
-           //     }
-                else if (IsWord(words[i]))
+                else 
                     AddTerm(currentDoc, words[i]);
-
-
-                /// if ((Double.TryParse(words[i].Substring(0, currentWordLength - 1), out double d3) && words[i][currentWordLength - 1].Equals('$')) ||
-                ///   (Double.TryParse(words[i].Substring(0, currentWordLength - 1), out double d4) && words[i][currentWordLength - 1].Equals('$')) ||
-                ////    (Double.TryParse(words[i].Substring(0, currentWordLength - 1), out double d5) && words[i][currentWordLength - 1].Equals('$')) ||
-                ///   (Double.TryParse(words[i].Substring(0, currentWordLength - 1), out double d6) && words[i][currentWordLength - 1].Equals('$')))
-                {
-
-                }
+                
             }//second for
+            Console.WriteLine("the end");
         }
-        /// <summary>
-        /// cheking if a string is a word or nor
-        /// </summary>
-        /// <param name="currentWord"></param>
-        /// <returns>true-the string is a word
-        /// false-the string is not a word</returns>
-        public bool IsWord(string currentWord)
-        {
-            for (int i = 0; i < currentWord.Length; i++)
-            {
-                if (!char.IsLetter(currentWord[i]))
-                    return false;
-            }
-            return true;
-        }
+       
 
         /// <summary>
         /// updatind the date field for any document object
@@ -200,30 +175,29 @@ namespace Engine
         private int FindMonth(string currentWord)
         {
             currentWord = currentWord.ToLower();
-            Char.ToUpper(currentWord[0]);
-            if (currentWord.Equals("January") || currentWord.Equals("Jan"))
+            if (currentWord.Equals("january") || currentWord.Equals("jan"))
                 return 1;
-            else if (currentWord.Equals("February") || currentWord.Equals("Feb"))
+            else if (currentWord.Equals("february") || currentWord.Equals("feb"))
                 return 2;
-            else if (currentWord.Equals("March") || currentWord.Equals("Mar"))
+            else if (currentWord.Equals("march") || currentWord.Equals("mar"))
                 return 3;
-            else if (currentWord.Equals("April") || currentWord.Equals("Apr"))
+            else if (currentWord.Equals("april") || currentWord.Equals("apr"))
                 return 4;
-            else if (currentWord.Equals("May"))
+            else if (currentWord.Equals("may"))
                 return 5;
-            else if (currentWord.Equals("June") || currentWord.Equals("Jun"))
+            else if (currentWord.Equals("june") || currentWord.Equals("jun"))
                 return 6;
-            else if (currentWord.Equals("July") || currentWord.Equals("Jul"))
+            else if (currentWord.Equals("july") || currentWord.Equals("jul"))
                 return 7;
-            else if (currentWord.Equals("August") || currentWord.Equals("Aug"))
+            else if (currentWord.Equals("august") || currentWord.Equals("aug"))
                 return 8;
-            else if (currentWord.Equals("September") || currentWord.Equals("Sep"))
+            else if (currentWord.Equals("september") || currentWord.Equals("sep"))
                 return 9;
-            else if (currentWord.Equals("October") || currentWord.Equals("Oct"))
+            else if (currentWord.Equals("october") || currentWord.Equals("oct"))
                 return 10;
-            else if (currentWord.Equals("November") || currentWord.Equals("Nov"))
+            else if (currentWord.Equals("november") || currentWord.Equals("nov"))
                 return 11;
-            else if (currentWord.Equals("December") || currentWord.Equals("Dec"))
+            else if (currentWord.Equals("december") || currentWord.Equals("dec"))
                 return 12;
             else
                 return 0;
@@ -258,7 +232,7 @@ namespace Engine
             currentWord = currentWord.ToLower();
             if (i + 1 < words.Length)// to avoid out of bound exception
             {
-                if(words[i + 1].ToLower().Equals(words[i + 1]))//if the next word doesnt contain capital letter
+                if(words[i + 1].ToLower().Equals(words[i + 1])|| signs.Contains(words[i][0])|| signs.Contains(words[i][words[i].Length-1]))//if the next word doesnt contain capital letter
                 {
                     AddTerm(currentDoc, currentWord);
                     i = i + 1;
@@ -267,7 +241,8 @@ namespace Engine
                 {
                     string temp = currentWord;
                     AddTerm(currentDoc, currentWord);
-                    while (!words[i + 1].ToLower().Equals(words[i + 1]))//while the next word contains capital letter
+                    
+                    while (!(words[i + 1].ToLower().Equals(words[i + 1])&& signs.Contains(words[i][0]) || signs.Contains(words[i][words[i].Length-1])))//while the next word contains capital letter
                     {
                         currentWord = words[i + 1].ToLower();
                         temp = temp + " " + currentWord;
@@ -287,6 +262,8 @@ namespace Engine
             }          
             return i;
         }
+
+       
 
         private void HyphenCase(Document currentDoc, string[] words, int i)
         {
@@ -380,12 +357,13 @@ namespace Engine
         /// <param name="position"></param> the position of the term in the current document
         private void AddTerm(Document currentDoc, string termName)
         {
-            if(termName[termName.Length - 1].Equals('.'))
+            if(signs.Contains(termName[termName.Length - 1])|| signs.Contains(termName[0]))
                 termName = Regex.Replace(termName, @"[^0-9a-zA-Z ]+", ""); //remove unnecessary chars
             Term t = new Term(termName);
             t.updateDetails(currentDoc, this.documentCurrentPosition);
             currentDoc.addTerm(t);
             this.documentCurrentPosition++;
+            terms.Add(t);
             //send to indexer
         }
 
