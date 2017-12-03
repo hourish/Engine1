@@ -29,13 +29,13 @@ namespace Engine
             for (int i = 2; i < words.Length; i++)//loop for the documnet's date the to find the begining of the text
             {
                 string currentWord = words[i];
-                if (currentWord == "" || (stopWords.Contains(currentWord) && Char.IsLower(currentWord[0]))) // if empty line or stopWord
-                    continue;
+                //if (currentWord == "" || (stopWords.Contains(currentWord) && Char.IsLower(currentWord[0]))) // if empty line or stopWord
+                  //  continue;
                 while (!words[i].Contains("<DATE")) // set the document date
                     i++;
                 i = DocDate(currentDoc, words, i);
-                if (currentWord == "" || (stopWords.Contains(currentWord) && Char.IsLower(currentWord[0]))) // if empty line or stopWord
-                    continue;
+                //if (currentWord == "" || (stopWords.Contains(currentWord) && Char.IsLower(currentWord[0]))) // if empty line or stopWord
+                   // continue;
                 while (!words[i].Contains("<TEXT>"))
                     i++;
                 startOfText = ++i; // now its the start of the text
@@ -44,27 +44,66 @@ namespace Engine
             for (int i = startOfText; i < words.Length; i++) //loop for the text
             {
                 int currentWordLength = words[i].Length;
-                if (char.IsNumber(words[i][0]))
+                if (words[i] == "" || stopWords.Contains(words[i])) // if empty line or stopWord
+                     continue;
+                if (words[i].Contains('$'))
+                {
+                    //dolar
+                }
+                else if(words[i].Contains('-'))
+                {
+                    //hypen
+                }
+                else if (char.IsNumber(words[i][0]))
                 {
                     //if the whole term is a number or a percent
                     if (Double.TryParse(words[i], out double d1) || (Double.TryParse(words[i].Substring(0, currentWordLength - 1), out double d2) && words[i][currentWordLength - 1].Equals('%')))
                     {
                         NumberCase(currentDoc, words, i);
                     }
-                    else if(words[i].Substring())
+                    else if (words[i].Contains("th") || FindMonth(words[i + 1]) != 0) // if the number is part of a date
+                    {
+                        //Date
+                    }
+
                 }// if first digit is number
+                else if (FindMonth(words[i]) != 0)// if a word is a month
+                {
+                    //date
+                }
                 else if (!words[i].ToLower().Equals(words[i]))//check if the word contains at least one capital letter
                 {
+                    i = CapitalLetterCase(currentDoc, words, i);
                 }
-                if ((Double.TryParse(words[i].Substring(0, currentWordLength - 1), out double d3) && words[i][currentWordLength - 1].Equals('$')) ||
-                    (Double.TryParse(words[i].Substring(0, currentWordLength - 1), out double d4) && words[i][currentWordLength - 1].Equals('$')) ||
-                    (Double.TryParse(words[i].Substring(0, currentWordLength - 1), out double d5) && words[i][currentWordLength - 1].Equals('$')) ||
-                    (Double.TryParse(words[i].Substring(0, currentWordLength - 1), out double d6) && words[i][currentWordLength - 1].Equals('$')))
+                else if (IsWord(words[i]))
+                    AddTerm(currentDoc, words[i]);
+                
+                
+               /// if ((Double.TryParse(words[i].Substring(0, currentWordLength - 1), out double d3) && words[i][currentWordLength - 1].Equals('$')) ||
+                 ///   (Double.TryParse(words[i].Substring(0, currentWordLength - 1), out double d4) && words[i][currentWordLength - 1].Equals('$')) ||
+                ////    (Double.TryParse(words[i].Substring(0, currentWordLength - 1), out double d5) && words[i][currentWordLength - 1].Equals('$')) ||
+                 ///   (Double.TryParse(words[i].Substring(0, currentWordLength - 1), out double d6) && words[i][currentWordLength - 1].Equals('$')))
                 {
 
                 }
             }//second for
         }
+        /// <summary>
+        /// cheking if a string is a word or nor
+        /// </summary>
+        /// <param name="currentWord"></param>
+        /// <returns>true-the string is a word
+        /// false-the string is not a word</returns>
+        public bool IsWord(string currentWord)
+        {
+            for(int i=0;i<currentWord.Length;i++)
+            {
+                if (!char.IsLetter(currentWord[i]))
+                    return false;
+            }
+            return true;
+        }
+    
 
         /// <summary>
         /// updatind the date field for any document object
@@ -311,6 +350,15 @@ namespace Engine
             currentDoc.addTerm(t);
             this.documentCurrentPosition++;
             //send to indexer
+        }
+
+        private void hypen(string word)
+        {
+            if (char.IsNumber(word[0]))
+            {
+                int length = word.Length;
+                if ((word.Substring(0, 2).Equals("20")|| word.Substring(0, 2).Equals("19"))&&()
+            }
         }
 
     }  
