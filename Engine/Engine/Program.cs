@@ -10,7 +10,7 @@ namespace Engine
     {
         static void Main(string[] args)
         {
-            ReadFile rf = new ReadFile(@"D:\EngineFiles test");
+            ReadFile rf = new ReadFile(@"C:\Users\Shani\Desktop\study\first semester\Ihzur\Engine\corpus\corpus");
             rf.Seperate();
         }
     }

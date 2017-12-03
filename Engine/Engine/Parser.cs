@@ -12,7 +12,6 @@ namespace Engine
     {
         private HashSet<string> stopWords = new HashSet<string>();
         HashSet<char> signs = new HashSet<char> { '!', '?', ':', ',', '.', '[', ']', '(', ')', '{', '}', '.', '"' };
-        //private HashSet<Term> terms = new HashSet<Term>();
         private HashSet<Term> terms = new HashSet<Term>(); // לא בטוח שצריך
         private int documentCurrentPosition = 0;
         public Parser(string path) => ReadStopWords(path);
@@ -24,11 +23,12 @@ namespace Engine
         {
             // האם להוריד ', מתי בסטמר
             //   string s = Regex.Replace("[a-1]",  @"[^0-9a-zA-Z. %-$]+", ""); //remove unnecessary chars
+            string DOCNO = str.Substring(1, str.IndexOf("</DOCNO>") - 2);
+            Document currentDoc = new Document(DOCNO);//because str started after <DOCNO>     
             char[] delimeters = { ' ', '\n', '\r', '-' };//לזכור לשנות dב-casenumber
             string[] words = str.Split(delimeters);
-            Document currentDoc = new Document(words[1]);//because str started after <DOCNO>     
             int startOfText = 0;
-            for (int i = 2; i < words.Length; i++)//loop for the documnet's date the to find the begining of the text
+            for (int i = 4; i < words.Length; i++)//loop for the documnet's date the to find the begining of the text. start after the DOCNO
             {
                 string currentWord = words[i];
                 if (currentWord == "" || (stopWords.Contains(currentWord) && Char.IsLower(currentWord[0]))) // if empty line or stopWord
@@ -45,6 +45,7 @@ namespace Engine
             }//first for
             for (int i = startOfText; i < words.Length; i++) //loop for the text from <Text> 
             {
+                string currentWord = words[i];//for debug
                 int currentWordLength = words[i].Length;
                 if (words[i][currentWordLength - 2].Equals('\'') && words[i][currentWordLength - 1].Equals('s')) //if word ends with 's suffix
                     words[i] = words[i].Substring(0, words[i].IndexOf('\''));
@@ -308,8 +309,8 @@ namespace Engine
             currentWord = currentWord.ToLower();
             if (i + 1 < words.Length)// to avoid out of bound exception
             {
-                if (words[i + 1].ToLower().Equals(words[i + 1]) || signs.Contains(words[i][0]) || signs.Contains(words[i][words[i].Length]))//if the next word doesnt contain capital letter
-                if(words[i + 1].ToLower().Equals(words[i + 1])|| signs.Contains(words[i][0])|| signs.Contains(words[i][words[i].Length-1]))//if the next word doesnt contain capital letter
+                //no concatenate if the next word doesnt contain capital letter or that the word contain sign at the beginning or at the end
+                if (words[i + 1].ToLower().Equals(words[i + 1])|| signs.Contains(words[i][0])|| signs.Contains(words[i][words[i].Length-1]))
                 {
                     AddTerm(currentDoc, currentWord);
                     i = i + 1;
@@ -319,10 +320,14 @@ namespace Engine
                     string temp = currentWord;
                     AddTerm(currentDoc, currentWord);
 
-                    while (!(words[i + 1].ToLower().Equals(words[i + 1]) && signs.Contains(words[i][0]) || signs.Contains(words[i][words[i].Length])))//while the next word contains capital letter
-                    
-                    while (!(words[i + 1].ToLower().Equals(words[i + 1])&& signs.Contains(words[i][0]) || signs.Contains(words[i][words[i].Length-1])))//while the next word contains capital letter
+                    //check if the next word contains capital letter and doesnt contains signs at the end or the beginning
+                    while (!(words[i + 1].ToLower().Equals(words[i + 1])) && !signs.Contains(words[i][0]) && !signs.Contains(words[i][words[i].Length - 1]))
                     {
+                        if (words[i + 1].Equals(""))
+                        {
+                            i++;
+                            continue;
+                        }
                         currentWord = words[i + 1].ToLower();
                         temp = temp + " " + currentWord;
                         AddTerm(currentDoc, currentWord);
@@ -405,7 +410,7 @@ namespace Engine
         /// <param name="position"></param> the position of the term in the current document
         private void AddTerm(Document currentDoc, string termName)
         {
-            if (signs.Contains(termName[termName.Length - 1]) || signs.Contains(termName[0]))
+            if (signs.Contains(termName[termName.Length - 1]) || signs.Contains(termName[0]))//delete unnecessary signs 
                 termName = Regex.Replace(termName, @"[^0-9a-zA-Z ]+", ""); //remove unnecessary chars
             Term t = new Term(termName);
             t.updateDetails(currentDoc, this.documentCurrentPosition);
@@ -414,5 +419,5 @@ namespace Engine
             terms.Add(t);
             //send to indexer
         }
-    }//
+    }
 }
