@@ -21,68 +21,70 @@ namespace Engine
         /// <param name="str"></param> a text to parse
         public void Parse(string str)
         {
-            Console.WriteLine("working");
-            char[] delimeters = { ' ', '\n', '\r' };
+           // האם להוריד ', מתי בסטמר
+        //   string s = Regex.Replace("[a-1]",  @"[^0-9a-zA-Z. %-$]+", ""); //remove unnecessary chars
+            char[] delimeters = { ' ', '\n', '\r','-' };//לזכור לשנות ב-casenumber
             string[] words = str.Split(delimeters);
             Document currentDoc = new Document(words[1]);//because str started after <DOCNO>     
             int startOfText = 0;
             for (int i = 2; i < words.Length; i++)//loop for the documnet's date the to find the begining of the text
             {
                 string currentWord = words[i];
-                //if (currentWord == "" || (stopWords.Contains(currentWord) && Char.IsLower(currentWord[0]))) // if empty line or stopWord
-                  //  continue;
+                if (currentWord == "" || (stopWords.Contains(currentWord) && Char.IsLower(currentWord[0]))) // if empty line or stopWord
+                    continue;
                 while (!words[i].Contains("<DATE")) // set the document date
                     i++;
                 i = DocDate(currentDoc, words, i);
-                //if (currentWord == "" || (stopWords.Contains(currentWord) && Char.IsLower(currentWord[0]))) // if empty line or stopWord
-                   // continue;
+                if (currentWord == "" || (stopWords.Contains(currentWord) && Char.IsLower(currentWord[0]))) // if empty line or stopWord
+                    continue;
                 while (!words[i].Contains("<TEXT>"))
                     i++;
                 startOfText = ++i; // now its the start of the text
                 break;
             }//first for
-            for (int i = startOfText; i < words.Length; i++) //loop for the text
+            for (int i = startOfText; i < words.Length; i++) //loop for the text from <Text> 
             {
                 int currentWordLength = words[i].Length;
-                if (words[i] == "" || stopWords.Contains(words[i])) // if empty line or stopWord
-                     continue;
-                if (words[i].Contains('$'))
+                if (words[i] == "" || (stopWords.Contains(words[i]) && Char.IsLower(words[i][0]))) // if empty line or stopWord
+                    continue;
+                if (char.IsNumber(words[i][0])) //if the first char is number
                 {
-                    //dolar
-                }
-                else if(words[i].Contains('-'))
-                {
-                    //hypen
-                }
-                else if (char.IsNumber(words[i][0]))
-                {
-                    //if the whole term is a number or a percent
-                    if (Double.TryParse(words[i], out double d1) || (Double.TryParse(words[i].Substring(0, currentWordLength - 1), out double d2) && words[i][currentWordLength - 1].Equals('%')))
+                    //if the number is part of a date 
+                    if ((Int32.TryParse(words[i], out int d1) && FindMonth(words[i + 1]) != 0) || words[i].Substring(currentWordLength - 2, 2).Equals("th"))
+                    //if (Double.TryParse(words[i].Substring(0, currentWordLength - 1), out double d2) && words[i][currentWordLength - 1].Equals('%'))
                     {
-                        NumberCase(currentDoc, words, i);
-                    }
-                    else if (words[i].Contains("th") || FindMonth(words[i + 1]) != 0) // if the number is part of a date
+                        //date
+                    }//DateCase
+                     //if the whole term is a number or ends with %
+                    else if ((Double.TryParse(words[i].Substring(0, currentWordLength - 1), out double d2) && words[i][currentWordLength - 1].Equals('%')) || Double.TryParse(words[i], out double d3))
                     {
-                        //Date
+                        words[i] = Regex.Replace(words[i],  @"[^0-9a-zA-Z. %]+", ""); //remove unnecessary chars
+                        i = NumberCase(currentDoc, words, i);
                     }
-
-                }// if first digit is number
-                else if (FindMonth(words[i]) != 0)// if a word is a month
+                }// if first char is number
+                else if (FindMonth(words[i]) != 0 && Int32.TryParse(words[i+1], out int d1))// if it is a part of a Date
                 {
-                    //date
+                    //DATE
                 }
                 else if (!words[i].ToLower().Equals(words[i]))//check if the word contains at least one capital letter
                 {
-                    i = CapitalLetterCase(currentDoc, words, i);
-                }
+                    i=CapitalLetterCase(currentDoc,words,i);
+
+                } 
+                else  if( stopWords.Contains(words[i])) // if empty line or stopWord
+                    continue;
+             //   if (words[i][0]('$'))
+              //  {
+                    //dolar
+           //     }
                 else if (IsWord(words[i]))
                     AddTerm(currentDoc, words[i]);
-                
-                
-               /// if ((Double.TryParse(words[i].Substring(0, currentWordLength - 1), out double d3) && words[i][currentWordLength - 1].Equals('$')) ||
-                 ///   (Double.TryParse(words[i].Substring(0, currentWordLength - 1), out double d4) && words[i][currentWordLength - 1].Equals('$')) ||
+
+
+                /// if ((Double.TryParse(words[i].Substring(0, currentWordLength - 1), out double d3) && words[i][currentWordLength - 1].Equals('$')) ||
+                ///   (Double.TryParse(words[i].Substring(0, currentWordLength - 1), out double d4) && words[i][currentWordLength - 1].Equals('$')) ||
                 ////    (Double.TryParse(words[i].Substring(0, currentWordLength - 1), out double d5) && words[i][currentWordLength - 1].Equals('$')) ||
-                 ///   (Double.TryParse(words[i].Substring(0, currentWordLength - 1), out double d6) && words[i][currentWordLength - 1].Equals('$')))
+                ///   (Double.TryParse(words[i].Substring(0, currentWordLength - 1), out double d6) && words[i][currentWordLength - 1].Equals('$')))
                 {
 
                 }
@@ -96,14 +98,13 @@ namespace Engine
         /// false-the string is not a word</returns>
         public bool IsWord(string currentWord)
         {
-            for(int i=0;i<currentWord.Length;i++)
+            for (int i = 0; i < currentWord.Length; i++)
             {
                 if (!char.IsLetter(currentWord[i]))
                     return false;
             }
             return true;
         }
-    
 
         /// <summary>
         /// updatind the date field for any document object
@@ -145,17 +146,50 @@ namespace Engine
             return i;
         }
 
+        /// <summary>
+        /// convert integers that present day, month and year to string of date according to the rules
+        /// </summary>
+        /// <param name="day"></param>
+        /// <param name="month"></param>
+        /// <param name="year"></param>
+        /// <returns></returns>
         private string DateToString(int day, int month, int year)
         {
             string str = "";
-            if (month >= 10 && day >= 10)
-                str = day + "/" + month + "/" + year;
-            else if (month < 10 && day >= 10)
-                str = day + "/0" + month + "/" + year;
-            else if (month < 10 && day < 10)
-                str = day + "/0" + month + "/0" + year;
-            else if (month >= 10 && day < 10)
-                str = day + "/" + month + "/0" + year;
+            if (month >= 10)
+            {
+                if (year == 0)
+                {
+                    if (day >= 10)
+                        str = day + "/" + month;
+                    else//day < 10
+                        str = "0" + day + "/" + month;
+                }
+                else
+                {
+                    if (day >= 10)
+                        str = day + "/" + month + "/" + year;
+                    else//day < 10
+                        str = "0" + day + "/" + month + year;
+                }
+            }
+            else if (month < 10)
+            {
+                if (year == 0)
+                {
+                    if (day >= 10)
+                        str = day + "/0" + month;
+                    else//day < 10
+                        str = "0" + day + "/0" + month;
+                }
+                else
+                {
+                    if (day >= 10)
+                        str = day + "/0" + month + "/" + year;
+                    else//day < 10
+                        str = "0" + day + "/0" + month + year;
+                }
+            }
             return str;
         }
         /// <summary>
@@ -165,6 +199,8 @@ namespace Engine
         /// <returns></returns>
         private int FindMonth(string currentWord)
         {
+            currentWord = currentWord.ToLower();
+            Char.ToUpper(currentWord[0]);
             if (currentWord.Equals("January") || currentWord.Equals("Jan"))
                 return 1;
             else if (currentWord.Equals("February") || currentWord.Equals("Feb"))
@@ -293,7 +329,6 @@ namespace Engine
             string currentWord = words[i];
             //try
             // currentWord = Regex.Replace(currentWord, @"[,]", "");//remove unnecessary chars
-            currentWord = Regex.Replace(currentWord, @"[^0-9a-zA-Z. %-]+", "");//remove unnecessary chars
             if (!currentWord.Contains(".") && !(currentWord.Contains("%") || words[i + 1].Contains("percentage") || (words[i + 1].Contains("percent"))))//regular number (without percent or .)
                 AddTerm(currentDoc, currentWord);
             else if (currentWord.Contains("."))//check if the number is neede to be round
@@ -345,6 +380,8 @@ namespace Engine
         /// <param name="position"></param> the position of the term in the current document
         private void AddTerm(Document currentDoc, string termName)
         {
+            if(termName[termName.Length - 1].Equals('.'))
+                termName = Regex.Replace(termName, @"[^0-9a-zA-Z ]+", ""); //remove unnecessary chars
             Term t = new Term(termName);
             t.updateDetails(currentDoc, this.documentCurrentPosition);
             currentDoc.addTerm(t);
@@ -352,14 +389,10 @@ namespace Engine
             //send to indexer
         }
 
-        private void hypen(string word)
+        /*private int DateCase(Document currentDoc, string[] words, int i)
         {
-            if (char.IsNumber(word[0]))
-            {
-                int length = word.Length;
-                if ((word.Substring(0, 2).Equals("20")|| word.Substring(0, 2).Equals("19"))&&()
-            }
-        }
+            string currentWord = words[i];
+        }*/
 
     }  
 }
