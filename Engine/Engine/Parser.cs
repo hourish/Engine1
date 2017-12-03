@@ -23,7 +23,7 @@ namespace Engine
         {
            // האם להוריד ', מתי בסטמר
         //   string s = Regex.Replace("[a-1]",  @"[^0-9a-zA-Z. %-$]+", ""); //remove unnecessary chars
-            char[] delimeters = { ' ', '\n', '\r','-' };//לזכור לשנות ב-casenumber
+            char[] delimeters = { ' ', '\n', '\r','-' };//לזכור לשנות dב-casenumber
             string[] words = str.Split(delimeters);
             Document currentDoc = new Document(words[1]);//because str started after <DOCNO>     
             int startOfText = 0;
