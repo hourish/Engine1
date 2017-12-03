@@ -11,19 +11,20 @@ namespace Engine
     class Parser
     {
         private HashSet<string> stopWords = new HashSet<string>();
+        HashSet<char> signs = new HashSet<char> { '!', '?', ':', ',', '.', '[', ']', '(', ')', '{', '}', '.', '"' };
+        //private HashSet<Term> terms = new HashSet<Term>();
         private HashSet<Term> terms = new HashSet<Term>(); // לא בטוח שצריך
         private int documentCurrentPosition = 0;
         public Parser(string path) => ReadStopWords(path);
-    HashSet<char> signs=  new HashSet<char>{ '!', '?', ':', ',', '.', '[', ']', '(', ')', '{', '}', '.', '"'};
         /// <summary>
         /// divide a text into terms according to the engine rulls
         /// </summary>
         /// <param name="str"></param> a text to parse
         public void Parse(string str)
         {
-           // האם להוריד ', מתי בסטמר
-        //   string s = Regex.Replace("[a-1]",  @"[^0-9a-zA-Z. %-$]+", ""); //remove unnecessary chars
-            char[] delimeters = { ' ', '\n', '\r','-' };//לזכור לשנות dב-casenumber
+            // האם להוריד ', מתי בסטמר
+            //   string s = Regex.Replace("[a-1]",  @"[^0-9a-zA-Z. %-$]+", ""); //remove unnecessary chars
+            char[] delimeters = { ' ', '\n', '\r', '-' };//לזכור לשנות dב-casenumber
             string[] words = str.Split(delimeters);
             Document currentDoc = new Document(words[1]);//because str started after <DOCNO>     
             int startOfText = 0;
@@ -45,41 +46,109 @@ namespace Engine
             for (int i = startOfText; i < words.Length; i++) //loop for the text from <Text> 
             {
                 int currentWordLength = words[i].Length;
+                if (words[i][currentWordLength - 2].Equals('\'') && words[i][currentWordLength - 1].Equals('s')) //if word ends with 's suffix
+                    words[i] = words[i].Substring(0, words[i].IndexOf('\''));
                 if (words[i] == "" || (stopWords.Contains(words[i]) && Char.IsLower(words[i][0]))) // if empty line or stopWord
                     continue;
                 if (char.IsNumber(words[i][0])) //if the first char is number
                 {
-                    //if the number is part of a date 
+                    //if the number is part of a date: int and than month or int with th suffix
                     if ((Int32.TryParse(words[i], out int d1) && FindMonth(words[i + 1]) != 0) || words[i].Substring(currentWordLength - 2, 2).Equals("th"))
-                    //if (Double.TryParse(words[i].Substring(0, currentWordLength - 1), out double d2) && words[i][currentWordLength - 1].Equals('%'))
                     {
-                        //date
-                    }//DateCase
+                        i = DateCaseBeginWithNumber(currentDoc, words, i);
+                    }//DateCaseBeginWithNumber
                      //if the whole term is a number or ends with %
                     else if ((Double.TryParse(words[i].Substring(0, currentWordLength - 1), out double d2) && words[i][currentWordLength - 1].Equals('%')) || Double.TryParse(words[i], out double d3))
                     {
-                        words[i] = Regex.Replace(words[i],  @"[^0-9a-zA-Z. %]+", ""); //remove unnecessary chars
+                        words[i] = Regex.Replace(words[i], @"[^0-9a-zA-Z. %]+", ""); //remove unnecessary chars
                         i = NumberCase(currentDoc, words, i);
                     }
                 }// if first char is number
-                else if (FindMonth(words[i]) != 0 && Int32.TryParse(words[i+1], out int d1))// if it is a part of a Date
+                else if (FindMonth(words[i]) != 0 && Int32.TryParse(words[i + 1], out int d1))// if date start with month
                 {
-                    //DATE
+                    i = DateCaseBeginWithMonth(currentDoc, words, i);
                 }
                 else if (!words[i].ToLower().Equals(words[i]))//check if the word contains at least one capital letter
                 {
-                    i=CapitalLetterCase(currentDoc,words,i);
+                    i = CapitalLetterCase(currentDoc, words, i);
 
-                } 
-                else  if( stopWords.Contains(words[i])) // if empty line or stopWord
+                }
+                else if (stopWords.Contains(words[i])) // if empty line or stopWord
                     continue;
-                else 
+                else
                     AddTerm(currentDoc, words[i]);
-                
             }//second for
-            Console.WriteLine("the end");
         }
-       
+        /// <summary>
+        /// responsible for the case when the words[i] is part of a date: int and than month or int with th suffix
+        /// </summary>
+        /// <param name="currentDoc"></param>
+        /// <param name="words"></param>
+        /// <param name="i"></param> index
+        /// <returns></returns>
+        private int DateCaseBeginWithNumber(Document currentDoc, string[] words, int i)
+        {
+            string currentWord = words[i];
+            int day = 0, month = 0, year = 0;
+            month = FindMonth(words[i + 1]);
+            if (currentWord.Substring(currentWord.Length - 2, 2).Equals("th"))//cases like 12th MAY 1991
+            {
+                int.TryParse(currentWord.Substring(0, currentWord.IndexOf('t')), out day);
+                int.TryParse(words[i + 2], out year);
+                i = i + 3;
+            }
+            else// cases like 12 MAY 1991 / 12 MAY 91 / 14 MAY
+            {
+                int.TryParse(currentWord, out day);
+                if (words[i + 2].Length == 4)
+                {
+                    int.TryParse(words[i + 2], out year);
+                    i = i + 3;
+                }
+                else if (words[i + 2].Length == 2)
+                {
+                    int.TryParse(words[i + 2], out int tmp);
+                    year = 1900 + tmp;
+                    i = i + 3;
+                }
+                else
+                {
+                    i = i + 2;
+                }
+            }
+            AddTerm(currentDoc, DateToString(day, month, year));
+            return i;
+        }
+        /// <summary>
+        /// responsible for the case when the words[i] is month at the beginning of a date
+        /// </summary>
+        /// <param name="currentDoc"></param>
+        /// <param name="words"></param>
+        /// <param name="i"></param> index
+        /// <returns></returns>
+        private int DateCaseBeginWithMonth(Document currentDoc, string[] words, int i)
+        {
+            string currentWord = words[i];
+            int day = 0, month = FindMonth(words[i]), year = 0;
+            if (words[i + 1][words[i + 1].Length - 1].Equals(','))
+            {
+                int.TryParse(currentWord.Substring(0, currentWord.IndexOf(',')), out day);//cases like MAY 12, 1990
+                int.TryParse(words[i + 2], out year);
+                i = i + 3;
+            }
+            else if (words[i + 1].Length == 2 || words[i + 1].Length == 1) // cases like  MAY 4
+            {
+                int.TryParse(words[i + 1], out day);
+                i = i + 2;
+            }
+            else if (words[i + 1].Length == 4) // cases like  MAY 1993
+            {
+                int.TryParse(words[i + 1], out year);
+                i = i + 2;
+            }
+            AddTerm(currentDoc, DateToString(day, month, year));
+            return i;
+        }
 
         /// <summary>
         /// updatind the date field for any document object
@@ -131,7 +200,14 @@ namespace Engine
         private string DateToString(int day, int month, int year)
         {
             string str = "";
-            if (month >= 10)
+            if (day == 0)
+            {
+                if (month < 10)
+                    str = "0" + month + "/" + year;
+                else
+                    str = month + "/" + year;
+            }
+            else if (month >= 10)
             {
                 if (year == 0)
                 {
@@ -211,7 +287,7 @@ namespace Engine
         {
             StreamReader sr = new StreamReader(path);
             string line = "";
-            while((line = sr.ReadLine()) != null)
+            while ((line = sr.ReadLine()) != null)
             {
                 stopWords.Add(line);
             }
@@ -232,6 +308,7 @@ namespace Engine
             currentWord = currentWord.ToLower();
             if (i + 1 < words.Length)// to avoid out of bound exception
             {
+                if (words[i + 1].ToLower().Equals(words[i + 1]) || signs.Contains(words[i][0]) || signs.Contains(words[i][words[i].Length]))//if the next word doesnt contain capital letter
                 if(words[i + 1].ToLower().Equals(words[i + 1])|| signs.Contains(words[i][0])|| signs.Contains(words[i][words[i].Length-1]))//if the next word doesnt contain capital letter
                 {
                     AddTerm(currentDoc, currentWord);
@@ -241,6 +318,8 @@ namespace Engine
                 {
                     string temp = currentWord;
                     AddTerm(currentDoc, currentWord);
+
+                    while (!(words[i + 1].ToLower().Equals(words[i + 1]) && signs.Contains(words[i][0]) || signs.Contains(words[i][words[i].Length])))//while the next word contains capital letter
                     
                     while (!(words[i + 1].ToLower().Equals(words[i + 1])&& signs.Contains(words[i][0]) || signs.Contains(words[i][words[i].Length-1])))//while the next word contains capital letter
                     {
@@ -259,41 +338,10 @@ namespace Engine
             else //end of the text
             {
                 AddTerm(currentDoc, currentWord);
-            }          
+            }
             return i;
         }
 
-       
-
-        private void HyphenCase(Document currentDoc, string[] words, int i)
-        {
-            string currentWord = words[i];
-            if (currentWord.Contains("-") && currentWord.Length == 7)//cases like 1992-93
-            {
-                int indexOfHyphen = currentWord.IndexOf('-');
-                if ((currentWord.Substring(0, 2).Equals("19") || currentWord.Substring(0, 2).Equals("20")) && currentWord.Substring(indexOfHyphen).Length == 2)
-                {
-                    string firstNum = currentWord.Substring(0, indexOfHyphen);
-                    string secondNum = currentWord.Substring(0, 2) + currentWord.Substring(indexOfHyphen);
-                    if (firstNum.Contains('.'))
-                    {
-                        double d = Double.Parse(currentWord);
-                        d = Math.Round(d, 2);
-                        AddTerm(currentDoc, "" + d);
-                    }
-                    else
-                        AddTerm(currentDoc, firstNum);
-                    if (secondNum.Contains('.'))
-                    {
-                        double d = Double.Parse(currentWord);
-                        d = Math.Round(d, 2);
-                        AddTerm(currentDoc, "" + d);
-                    }
-                    else
-                        AddTerm(currentDoc, secondNum);
-                }
-            }
-        }
         /// <summary>
         /// responsible for the numbers cases, include percets, and fix them according to the rules
         /// </summary>
@@ -357,7 +405,7 @@ namespace Engine
         /// <param name="position"></param> the position of the term in the current document
         private void AddTerm(Document currentDoc, string termName)
         {
-            if(signs.Contains(termName[termName.Length - 1])|| signs.Contains(termName[0]))
+            if (signs.Contains(termName[termName.Length - 1]) || signs.Contains(termName[0]))
                 termName = Regex.Replace(termName, @"[^0-9a-zA-Z ]+", ""); //remove unnecessary chars
             Term t = new Term(termName);
             t.updateDetails(currentDoc, this.documentCurrentPosition);
@@ -366,11 +414,5 @@ namespace Engine
             terms.Add(t);
             //send to indexer
         }
-
-        /*private int DateCase(Document currentDoc, string[] words, int i)
-        {
-            string currentWord = words[i];
-        }*/
-
-    }  
+    }
 }
