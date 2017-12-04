@@ -49,5 +49,9 @@ namespace Engine
         {
             return name.Equals(((Term)obj).name);
         }
+        public int getTF (Document currentDoc)
+        {
+            return details.Values.Count();
+        }
     }
 }

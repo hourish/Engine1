@@ -12,14 +12,13 @@ namespace Engine
         string name;
         int max_tf;
         int length;
-        DateTime date;
+        string date;
         ArrayList terms;
         public Document(string name)
         {
             this.name = name;
             max_tf = 0;
             length = 0;
-            date = new DateTime();
             terms = new ArrayList();
         }
 
@@ -28,7 +27,7 @@ namespace Engine
             this.max_tf = max_tf;
         }
 
-        public void SetDate(DateTime date)
+        public void SetDate(string date)
         {
             this.date = date;
         }
@@ -59,6 +58,18 @@ namespace Engine
         public override bool Equals(object obj)
         {
             return name.Equals(((Document)obj).name);
+        }
+
+        public void setMaxTF()
+        {
+            int max = -1;
+            for(int i = 0; i < terms.Count; i++)
+            {
+                if(((Term)terms[i]).getTF(this) > max)
+                {
+                    max = ((Term)terms[i]).getTF(this);
+                }
+            }
         }
     }
 }
