@@ -22,7 +22,7 @@ namespace Engine
         /// </summary>
         /// <param name="currentDoc"></param>
         /// <param name="position"></param> the position of the term in currentDoc
-        public void updateDetails(Document currentDoc, int position)
+        public void UpdateDetails(Document currentDoc, int position)
         {
             if(!details.ContainsKey(currentDoc))
             {
@@ -49,9 +49,17 @@ namespace Engine
         {
             return name.Equals(((Term)obj).name);
         }
-        public int getTF (Document currentDoc)
+        public int GetTF (Document currentDoc)
         {
-            return details.Values.Count();
+            return details[currentDoc].Count;
+        }
+        public int GetDF()
+        {
+            return details.Count;
+        }
+        public List<Document> GetDocsList()
+        {
+            return details.Keys.ToList();
         }
     }
 }
