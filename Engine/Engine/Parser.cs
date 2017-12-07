@@ -6,16 +6,18 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using System.IO;
+using System.Diagnostics;
 
 namespace Engine
 {
     class Parser
     {
+        Indexer indexer = new Indexer();
         private HashSet<string> stopWords = new HashSet<string>();
         Document currentDoc;
         Dictionary<string, string> months = new Dictionary<string, string>() { { "January", "01" }, { "Jan", "01" }, { "February", "02" }, { "Feb", "02" }, { "March", "03" }, { "Mar", "03" }, { "April", "04" }, { "Apr", "04" }, { "May", "05" }, { "June", "06" }, { "Jun", "06" }, { "July", "07" }, { "Jul", "07" }, { "August", "08" }, { "Aug", "08" }, { "September", "09" }, { "Sep", "09" }, { "October", "10" }, { "Oct", "10" }, { "November", "11" }, { "Nov", "11" }, { "December", "12" }, { "Dec", "12" } };
-        HashSet<char> signs = new HashSet<char> { '!', '?', ':', ',', '.', '[', ']', '(', ')', '{', '}', '.', '"', '\\', '/' };
-        private Dictionary<string, Term> terms;
+        HashSet<char> signs = new HashSet<char> { '!', '?', ':', ',', '.', '[', ']', '(', ')', '{', '}', '.', '"', '\\', '/' , '*'};
+        private static Dictionary<string, Term> terms = new Dictionary<string, Term>();
         private int documentCurrentPosition = 0;
         public Parser(string path) => ReadStopWords(path);
         /// <summary>
@@ -24,7 +26,6 @@ namespace Engine
         /// <param name="str"></param> a text to parse
         public void Parse(string str)
         {
-            terms = new Dictionary<string, Term>();
             // האם להוריד ', מתי בסטמר
             //   string s = Regex.Replace("[a-1]",  @"[^0-9a-zA-Z. %-$]+", ""); //remove unnecessary chars
             int startOfDONCON = 0;
@@ -136,6 +137,8 @@ namespace Engine
                     AddTerm(currentDoc, words[i]);
             }//second for
             currentDoc.SetMaxTF();
+            indexer.CreateTempPostingFile(terms.Values.ToArray(),currentDoc);
+            terms.Clear();
         }
 
         /// <summary>
@@ -474,7 +477,6 @@ namespace Engine
             t.UpdateDetails(currentDoc, this.documentCurrentPosition);
             currentDoc.AddTerm(t);
             this.documentCurrentPosition++;
-            //send to indexer
         }
     }
 }

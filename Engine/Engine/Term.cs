@@ -7,7 +7,7 @@ using System.Collections;
 
 namespace Engine
 {
-    class Term
+    class Term : IComparable<Term>
     {
         string name;
         Dictionary<Document, ArrayList> details; //df is the dictionary's length. tf is the arrayList's length.        
@@ -17,6 +17,23 @@ namespace Engine
             details = new Dictionary<Document, ArrayList>();
         }
 
+        public string StringToPosting()
+        {
+            string res = "";
+            for(int i = 0; i < details.Count; i++)//all the documents that the term appers in them
+            {
+                res += details.Keys.ElementAt(i).GetName() + ":";//the name of the document
+                ArrayList positions = details.Values.ElementAt(i);//all the positions in the document
+                for (int j = 0; j < positions.Count; j++)
+                {
+                    if (j != positions.Count - 1)
+                        res += positions[j] + ",";
+                    else
+                        res += positions[j] + "\n";
+                }
+            }
+            return res;
+        }
         /// <summary>
         /// update the details dictionary of a term.
         /// </summary>
@@ -60,6 +77,14 @@ namespace Engine
         public List<Document> GetDocsList()
         {
             return details.Keys.ToList();
+        }
+        public string GetName()
+        {
+            return name;
+        }
+        public int CompareTo(Term t)
+        {
+            return (name.CompareTo(t.GetName()));
         }
     }
 }

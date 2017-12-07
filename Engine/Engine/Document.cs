@@ -20,6 +20,10 @@ namespace Engine
             terms = new ArrayList();
         }
 
+        public string GetName()
+        {
+            return name;
+        }
         public int GetMaxTF()
         {
             return max_tf;
