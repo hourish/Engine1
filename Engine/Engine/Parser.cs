@@ -18,7 +18,7 @@ namespace Engine
         private HashSet<string> stopWords = new HashSet<string>();
         Document currentDoc;
         Dictionary<string, string> months = new Dictionary<string, string>() { { "January", "01" }, { "Jan", "01" }, { "February", "02" }, { "Feb", "02" }, { "March", "03" }, { "Mar", "03" }, { "April", "04" }, { "Apr", "04" }, { "May", "05" }, { "June", "06" }, { "Jun", "06" }, { "July", "07" }, { "Jul", "07" }, { "August", "08" }, { "Aug", "08" }, { "September", "09" }, { "Sep", "09" }, { "October", "10" }, { "Oct", "10" }, { "November", "11" }, { "Nov", "11" }, { "December", "12" }, { "Dec", "12" } };
-        HashSet<char> signs = new HashSet<char> { '�', '_', '[', '(', '{', ']', ')', '}', '!', '?', ':', ',', '.',  ';', '%', '/', '`', '+', '=', '#'};
+        HashSet<char> signs = new HashSet<char> { '[', '(', '{', ']', ')', '}', '!', '?', ':', ',', '.', ';', '%', '/', '`', '+', '=' };
         //HashSet<char> signs = new HashSet<char> { '!', '?', ':', ',', '.', '[', ']', '(', ')', '{', '}', '.', '"', '\\', '/', '*', '<', '>', '\'', ';', '|' };
         HashSet<char> letters = new HashSet<char> { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
         HashSet<char> numbers = new HashSet<char> { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
@@ -34,7 +34,7 @@ namespace Engine
         /// <param name="str"></param> a text to parse
         public Dictionary<string, Term> Parse(string str)
         {
-          //  str = Regex.Replace(str,  @"[^0-9a-zA-Z. %-$]+", ""); //remove unnecessary chars
+            //  str = Regex.Replace(str,  @"[^0-9a-zA-Z. %-$]+", ""); //remove unnecessary chars
             int startOfDONCON = 0;
             while (str[startOfDONCON].Equals(' '))
                 startOfDONCON++;
@@ -45,7 +45,7 @@ namespace Engine
                 startOfDONCON++;
             }
             currentDoc = new Document(DOCNO);//because str started after <DOCNO>
-            char[] delimeters = { ' ', '\n', '\r', '-', ']', ')',  '}', '\\', '*' , '"', '\'', '|' };
+            char[] delimeters = { ' ', '\n', '\r', '-', ']', ')', '}', '\\', '*', '"', '\'', '|' };
             //char[] delimeters = { ' ', '\n', '\r', '-' };
             string[] words = str.Split(delimeters);
             int startOfText = 0;
@@ -64,7 +64,7 @@ namespace Engine
                 {
                     if (currentWord != "")
                     {
-                        if (currentWord.Contains("<DATE") && currentWord.Length >= 10) 
+                        if (currentWord.Contains("<DATE") && currentWord.Length >= 10)
                         {
                             if (currentWord.Contains("<DATE1") && currentWord.Length == 13)// for cases like <DATE1>920314
                             {
@@ -111,7 +111,7 @@ namespace Engine
             }//first for
             for (int i = startOfText; i < words.Length; i++) //loop for the text from <Text> 
             {
-                if (words[i].Equals("") || stopWords.Contains(words[i]) || words[i][0].Equals('<') || words[i][0].Equals('&') || !IsLegal(words[i])) // if stopWord or illegal word
+                if (words[i].Equals("") || stopWords.Contains(words[i]) || words[i][0].Equals('<') || !IsLegal(words[i])) // if stopWord or illegal word
                     continue;
                 int tmp = 0;
                 while (signs.Contains(words[i][tmp]))
@@ -122,7 +122,7 @@ namespace Engine
                 }
                 if (tmp == words[i].Length)
                     continue;
-                else if(tmp > 0)
+                else if (tmp > 0)
                 {
                     words[i] = words[i].Substring(tmp);
                 }
@@ -543,19 +543,19 @@ namespace Engine
                             AddTerm(currentDoc, currentWord);
                         }
                     }
-                   /* else
-                    {
-                        if (words[i].Length > 1)
-                        {
-                            if (words[i][words[i].Length - 2].Equals('\'') && words[i][words[i].Length - 1].Equals('s')) //if word ends with 's suffix
-                            {
-                                words[i] = words[i].Substring(0, words[i].IndexOf("'s"));
-                                if (words[i].Equals(""))//cases like only 's
-                                    continue;
-                            }
-                        }
-                        AddTerm(currentDoc, words[i]);
-                    }*/
+                    /* else
+                     {
+                         if (words[i].Length > 1)
+                         {
+                             if (words[i][words[i].Length - 2].Equals('\'') && words[i][words[i].Length - 1].Equals('s')) //if word ends with 's suffix
+                             {
+                                 words[i] = words[i].Substring(0, words[i].IndexOf("'s"));
+                                 if (words[i].Equals(""))//cases like only 's
+                                     continue;
+                             }
+                         }
+                         AddTerm(currentDoc, words[i]);
+                     }*/
                 }
                 else if (words[i][0].Equals('$'))//dollar case
                 {
@@ -570,18 +570,18 @@ namespace Engine
                         AddTerm(currentDoc, d + " dollars");
                     }
                 }
-              /*  else
+                else
                 {
-                    if(!temp.Contains(words[i]))
+                    if (!temp.Contains(words[i]))
                         temp.Add(words[i]);
-                 //   AddTerm(currentDoc, words[i]);
-                }*/
+                    //   AddTerm(currentDoc, words[i]);
+                }
             }//second for
             currentDoc.SetMaxTF();
             return terms;
         }
 
-       public List<string> getTemp()
+        public List<string> getTemp()
         {
             return temp;
         }
@@ -596,13 +596,13 @@ namespace Engine
             bool containNumbers = false;
             bool res = false;
             //check if the word contains letters and numbers
-            for(int i = 0; i < currentWord.Length; i++)
+            for (int i = 0; i < currentWord.Length; i++)
             {
-                if(numbers.Contains(currentWord[i]))
+                if (numbers.Contains(currentWord[i]))
                 {
                     containNumbers = true;
                 }
-                if(letters.Contains(currentWord[i]))
+                if (letters.Contains(currentWord[i]))
                 {
                     containLetters = true;
                 }
@@ -626,8 +626,8 @@ namespace Engine
             string str = "";
             if (day == 0) //no day
             {
-              str = month + "/" + year;
-              return str;
+                str = month + "/" + year;
+                return str;
             }
             if (year == 0) // no year
             {
@@ -642,7 +642,7 @@ namespace Engine
                     str = day + "/" + month + "/" + year;
                 else//day < 10
                     str = "0" + day + "/" + month + "/" + year;
-            }          
+            }
             return str;
         }
 

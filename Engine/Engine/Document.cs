@@ -9,7 +9,7 @@ namespace Engine
 {
     class Document
     {
-        public string name;
+        private string name;
         int max_tf;
         string date;
         ArrayList terms;
@@ -20,10 +20,6 @@ namespace Engine
             terms = new ArrayList();
         }
 
-        public string GetName()
-        {
-            return name;
-        }
         public int GetMaxTF()
         {
             return max_tf;
@@ -43,7 +39,7 @@ namespace Engine
         /// <param name="term"></param>
         public void AddTerm(Term term)
         {
-            if(!terms.Contains(term))
+            if (!terms.Contains(term))
             {
                 terms.Add(term);
             }
@@ -68,7 +64,7 @@ namespace Engine
         public void SetMaxTF()
         {
             int max = -1;
-            for(int i = 0; i < terms.Count; i++)
+            for (int i = 0; i < terms.Count; i++)
             {
                 int currentTF = ((Term)terms[i]).GetTF(this);
                 if (currentTF > max)
@@ -77,6 +73,11 @@ namespace Engine
                 }
             }
             max_tf = max;
+        }
+
+        public String GetName()
+        {
+            return name;
         }
 
     }

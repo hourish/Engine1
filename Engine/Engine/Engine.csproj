@@ -45,7 +45,6 @@
     <Compile Include="Controller.cs" />
     <Compile Include="Document.cs" />
     <Compile Include="Indexer.cs" />
-    <Compile Include="Pair.cs" />
     <Compile Include="Parser.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -6,85 +6,132 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Text.RegularExpressions;
 
+
+
 namespace Engine
 {
     class Controller
     {
+        Indexer indexer = new Indexer();
         public void Engine(string path)
         {
-            int currentSize = 0;
-           /* long sizeOfCorpus = 0;
-            DirectoryInfo di = new DirectoryInfo(path);
-            DirectoryInfo[] diArr = di.GetDirectories();
-            for(int i = 0; i < diArr.Length; i++)
-            {
-                FileInfo[] fi = diArr[i].GetFiles();
-                for(int j = 0; j < fi.Length; j++)
-                {
-                    sizeOfCorpus += fi[j].Length;
-                }
-            }
-            */
+            // path = @"D:\EngineFiles test";
             ReadFile rf = new ReadFile(path);
             HashSet<string> stopWords = new HashSet<string>();
             stopWords = rf.ReadStopWords(path + "\\stop_words.txt");
             Parser parser = new Parser(stopWords);
-            int filesAmount = rf.FilesAmount();//num of files in the given dictionary
+            int filesAmount = rf.FilesAmount();
             Dictionary<string, Term> terms = new Dictionary<string, Term>();
-            Indexer indexer = new Indexer();
             Document currentDoc = null;
-            string file = "";
-            //Console.WriteLine("10% of corpus is " +sizeOfCorpus / 10);
+            string tempPath = @"./temp Posting Files";
+            Directory.CreateDirectory(tempPath);
+            string finalPath = @"./finalPosting";
+            Directory.CreateDirectory(finalPath);
+            // Console.WriteLine(filesAmount);
+            DirectoryInfo di = new DirectoryInfo(path);
+            long size = di.EnumerateFiles("*", SearchOption.AllDirectories).Sum(fi => fi.Length);
+            long avgFilesSize = size / filesAmount;
+            long tenPrecent = (size * 9) / 100;
+            long numFiles = tenPrecent / avgFilesSize;
+            int count = 0;
+            //Console.WriteLine(size);
+
             for (int i = 0; i < filesAmount; i++)//going through the files in the dictionery and send each to the parser 
             {
-                file = rf.ReadText(i);
-                //currentSize += ASCIIEncoding.Unicode.GetByteCount(file);
-               // currentSize++;
-                Match matchTEXT = rf.Seperate(file);// get a sperated files from red file
-              /*  if(currentSize >= 100)//more than 10 percent
+                Match matchTEXT = rf.Seperate(i);// get a sperated files from red file
+                while (matchTEXT.Success)
                 {
-                    //indexer.CreateTempPostingFile(path);
-                    currentSize = 0;
-                    string str = "";
-                    foreach(string s in terms.Keys)
-                    {
-                        str += s + "\n";
-                    }
-                    File.WriteAllText(@"C:\Users\Shani\Desktop\study\first semester\Ihzur\Engine\corpus\bayush", str);
-                    terms.Clear();
-                }*/
-               // if (matchTEXT != null)
-             //   {
-                    while (matchTEXT.Success)
-                    {
-                        terms = parser.Parse(matchTEXT.Groups[1].Value);
-                       // currentDoc = parser.GetDoc();
-                      //  indexer.PrepareToPosting(terms.Values.ToArray(), currentDoc, 5);
-                      //  currentDoc.SetMaxTF();
-                        matchTEXT = matchTEXT.NextMatch();
-                      /*  StringBuilder sb = new StringBuilder();
-                        foreach (string s in terms.Keys)
-                            sb.Append(s).Append("\n");
-                     File.WriteAllText(@"C:\Users\Shani\Desktop\study\first semester\Ihzur\Engine\corpus\bdika", sb.ToString());*/
-                    terms.Clear();//להוריד@@@@@@#$%^&^%$#$%^&*&^%$#
-                    }
-               // }
-                /*   if ((i % 2) == 0 && i > 0)
+                    terms = parser.Parse(matchTEXT.Groups[1].Value);
+
+                    currentDoc = parser.GetDoc();
+                       indexer.AddDoucToDectionery(currentDoc);
+                       indexer.PrepareToPosting(terms.Values.ToArray(), currentDoc);
+                        currentDoc.SetMaxTF();
+                    
+                    matchTEXT = matchTEXT.NextMatch();
+
+                }
+               
+                //count++;
+
+                //   if (count == numFiles)
+                /////למחוק מפה
+               
+                      if(i!=0)
                    {
-                       indexer.CreateTempPostingFile(path);
+                       //indexer.PrepareToPosting(terms.Values.ToArray(), currentDoc);
+                       indexer.CreateTempPostingFile(tempPath);
                        terms.Clear();
+                       count = 0;
+                  }
+
+
+
+               }//for
+               if(terms.Count>0) // if we finished the for and there are still terms in the hash
+               {
+                   indexer.CreateTempPostingFile(tempPath);
+                   terms.Clear();
+               }
+               string[] finalFolder = Directory.GetFiles(finalPath, "*.*", SearchOption.AllDirectories);
+               string[] temporarlyPostingFolder = Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories);
+               // continue until there is just one file in one of the folders
+               while (temporarlyPostingFolder.Length >= 1 && finalFolder.Length == 0)
+               {
+                   indexer.SetPostingNumber(0);
+                   Merge(tempPath, finalPath);
+                   temporarlyPostingFolder = Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories);
+                   finalFolder = Directory.GetFiles(finalPath, "*.*", SearchOption.AllDirectories);
+                   // if (temporarlyPostingFolder.Length == 1 && !Directory.EnumerateFiles(finalPath).Any())// if the final posting is in the temp directory so it move it to the right directory
+                   if (temporarlyPostingFolder.Length == 0 && finalFolder.Length == 1) { 
+                       break;
+                   }
+                   else
+                   {
+                       Merge(finalPath, tempPath);
+                       temporarlyPostingFolder = Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories);
+                       finalFolder = Directory.GetFiles(finalPath, "*.*", SearchOption.AllDirectories);
 
                    }
-                   if (i == 4)
-                   {
-                       indexer.Merge(@"D:\temporarly posting file" + "\\TempPostingFileNumber_" + "0", @"D:\temporarly posting file" + "\\TempPostingFileNumber_" + "1", @"D:\temporarly posting file", "posting1");
-                   }*/
-            }
-           /* foreach(string s in parser.getTemp())
-            {
-                Console.WriteLine(s);
-            }
-            Console.ReadLine();*/
+
+               }
+               
+              Console.WriteLine("the end");
+          }//engine
+
+
+          //}//Engine
+          /// <summary>
+          /// take every two files from source dictionery merge and save  the new file in the dest dictionery;
+          /// </summary>
+          /// <param name="source"></param>
+          /// <param name="dest"></param>
+          public void Merge(string source, string dest)
+              {
+                  string[] temporarlyPostingFolder = Directory.GetFiles(source, "*.*", SearchOption.AllDirectories);
+                  int index = 0;
+              // if there id odd number of files in the source it move one file to the dest folder
+                  if (temporarlyPostingFolder.Length % 2 != 0)
+                  {
+                      string fileName = System.IO.Path.GetFileName(temporarlyPostingFolder[0]);
+                      string destFile = System.IO.Path.Combine(dest, fileName);
+                      System.IO.File.Copy(temporarlyPostingFolder[0], destFile, true);
+                      File.Delete(temporarlyPostingFolder[0]);
+                      index = 1;
+                  }
+                  for (int i = index; i < temporarlyPostingFolder.Length; i = i + 2)
+                  {
+
+                      indexer.Merge(temporarlyPostingFolder[i], temporarlyPostingFolder[i+1], dest);
+                      File.Delete(temporarlyPostingFolder[i]);
+                      File.Delete(temporarlyPostingFolder[i+1]);
+                  }
+
+
+              }
+              
+            
         }
     }
-}
+
+

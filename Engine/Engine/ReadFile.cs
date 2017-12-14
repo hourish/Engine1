@@ -12,30 +12,42 @@ namespace Engine
     class ReadFile
     {
         string path;
-        private Regex CompiledRegex;
+        //Parser parser;
+        private  Regex CompiledRegex;
+        private double precent;
         private string[] filesPaths;
-
-       
+        //int index;
+     // private static readonly  Regex CompiledRegex = new Regex(Regex.Escape("<DOCNO>") + "(.*?)" + Regex.Escape("</TEXT>"), RegexOptions.Singleline);
         public ReadFile(string path)
         {
             this.path = path;
-            CompiledRegex = new Regex(Regex.Escape("<DOCNO>") + "(.*?)" + Regex.Escape("</TEXT>"), RegexOptions.Singleline);
-            filesPaths = System.IO.Directory.GetFiles(path, ".", System.IO.SearchOption.AllDirectories);///להתייעץ עם שני אם זה צריך להיות פה או בפונקציה
+            //parser = new Parser(path + "\\stop_words.txt");
+            CompiledRegex = new Regex(Regex.Escape("<DOCNO>") + "(.*?)" + Regex.Escape("</TEXT>"),RegexOptions.Singleline );
+            filesPaths = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
+               
+            
         }
         /// <summary>
         /// sperate directory into files
         /// </summary>
         /// <returns></returns>
-        public string ReadText(int index)
+        public Match Seperate(int index)
         {
-            return File.ReadAllText(filesPaths[index]);
-        }
+            
+                string fileText = File.ReadAllText(filesPaths[index]);
+                
+                //Match matchTEXT = CompiledRegex.Match(fileText);
+                return CompiledRegex.Match(fileText);
+            /*
+                while (matchTEXT.Success)
+                {
+                    parser.Parse(matchTEXT.Groups[1].Value);
+                    matchTEXT = matchTEXT.NextMatch();
+                    
+                }
+                */
 
-        public Match Seperate(string str)
-        {
-            return CompiledRegex.Match(str);
         }
-
         /// <summary>
         /// return the amount of files in specific path 
         /// </summary>
@@ -51,8 +63,8 @@ namespace Engine
         /// <param name="path"></param>
         public HashSet<string> ReadStopWords(string path)
         {
-            HashSet<string> stopWords = new HashSet<string>();
-            StreamReader sr = new StreamReader(path);
+          HashSet<string> stopWords = new HashSet<string>();
+        StreamReader sr = new StreamReader(path);
             string line = "";
             while ((line = sr.ReadLine()) != null)
             {
