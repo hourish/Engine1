@@ -16,22 +16,22 @@ namespace Engine
             this.name = name;
             details = new Dictionary<Document, ArrayList>();
         }
-
-        public string StringToPosting()
+        public string StringToPosting(Document currentDoc)
         {
-            string res = "";
-            for(int i = 0; i < details.Count; i++)//all the documents that the term appers in them
+            string res = name + "|" + currentDoc.GetName() + ':';
+            if (details.ContainsKey(currentDoc))
             {
-                res += details.Keys.ElementAt(i).GetName() + ":";//the name of the document
-                ArrayList positions = details.Values.ElementAt(i);//all the positions in the document
+                ArrayList positions = details[currentDoc];//all the positions in the document
                 for (int j = 0; j < positions.Count; j++)
                 {
                     if (j != positions.Count - 1)
                         res += positions[j] + ",";
                     else
-                        res += positions[j] + "\n";
+                        res += positions[j] + "?";
                 }
             }
+            else
+                res = "";
             return res;
         }
         /// <summary>

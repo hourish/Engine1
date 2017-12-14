@@ -11,38 +11,55 @@ namespace Engine
 {
     class ReadFile
     {
-        Indexer indexer = new Indexer();
         string path;
-        Parser parser;
-        int sizeCounter;
-        string[] filesPaths;
-        int currentIndex;
+        private Regex CompiledRegex;
+        private string[] filesPaths;
+
+       
         public ReadFile(string path)
         {
             this.path = path;
-            parser = new Parser(path + "\\stop_words.txt");
-            filesPaths = System.IO.Directory.GetFiles(path, ".", System.IO.SearchOption.AllDirectories);
-            currentIndex = 0;
-            sizeCounter = 0;
+            CompiledRegex = new Regex(Regex.Escape("<DOCNO>") + "(.*?)" + Regex.Escape("</TEXT>"), RegexOptions.Singleline);
+            filesPaths = System.IO.Directory.GetFiles(path, ".", System.IO.SearchOption.AllDirectories);///להתייעץ עם שני אם זה צריך להיות פה או בפונקציה
+        }
+        /// <summary>
+        /// sperate directory into files
+        /// </summary>
+        /// <returns></returns>
+        public string ReadText(int index)
+        {
+            return File.ReadAllText(filesPaths[index]);
         }
 
-        public void Seperate()
+        public Match Seperate(string str)
         {
+            return CompiledRegex.Match(str);
+        }
 
-            for (int i = 0; i < filesPaths.Length; i++)
+        /// <summary>
+        /// return the amount of files in specific path 
+        /// </summary>
+        /// <returns></returns>
+        public int FilesAmount()
+        {
+            return filesPaths.Length;
+        }
+
+        /// <summary>
+        /// read the file of the stopwords according to the path and update the hash set
+        /// </summary>
+        /// <param name="path"></param>
+        public HashSet<string> ReadStopWords(string path)
+        {
+            HashSet<string> stopWords = new HashSet<string>();
+            StreamReader sr = new StreamReader(path);
+            string line = "";
+            while ((line = sr.ReadLine()) != null)
             {
-                string fileText = File.ReadAllText(filesPaths[i]);
-                //if pass corpus size
-                Match matchTEXT = Regex.Match(fileText, Regex.Escape("<DOCNO>") + "(.*?)" + Regex.Escape("</TEXT>"), RegexOptions.Singleline, Regex.InfiniteMatchTimeout);
-                while (matchTEXT.Success)
-                {
-                    parser.Parse(matchTEXT.Groups[1].Value);
-                    matchTEXT = matchTEXT.NextMatch();
-                }
-                //else
-                indexer.CreateTempPostingFile(path);
-                sizeCounter = 0;
+                stopWords.Add(line);
             }
+            sr.Close();
+            return stopWords;
         }
     }
 }

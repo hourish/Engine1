@@ -3,20 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace Engine
 {
     class Program
     {
-        ReadFile rf;
-        public Program()
-        {
-            rf = new ReadFile(@"C:\Users\Shani\Desktop\study\first semester\Ihzur\Engine\dugma")
-        }
         static void Main(string[] args)
         {
-            ReadFile rf = new ReadFile(@"C:\Users\Shani\Desktop\study\first semester\Ihzur\Engine\dugma");
-            rf.Seperate();
+            Controller c = new Controller();
+            c.Engine(@"C:\Users\Shani\Desktop\study\first semester\Ihzur\Engine\corpus\corpus");
         }
     }
 }
