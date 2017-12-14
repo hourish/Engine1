@@ -80,11 +80,11 @@ namespace Engine
                        indexer.Merge(@"D:\temporarly posting file" + "\\TempPostingFileNumber_" + "0", @"D:\temporarly posting file" + "\\TempPostingFileNumber_" + "1", @"D:\temporarly posting file", "posting1");
                    }*/
             }
-            foreach(string s in parser.getTemp())
+           /* foreach(string s in parser.getTemp())
             {
                 Console.WriteLine(s);
             }
-            Console.ReadLine();
+            Console.ReadLine();*/
         }
     }
 }

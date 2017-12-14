@@ -18,7 +18,7 @@ namespace Engine
         private HashSet<string> stopWords = new HashSet<string>();
         Document currentDoc;
         Dictionary<string, string> months = new Dictionary<string, string>() { { "January", "01" }, { "Jan", "01" }, { "February", "02" }, { "Feb", "02" }, { "March", "03" }, { "Mar", "03" }, { "April", "04" }, { "Apr", "04" }, { "May", "05" }, { "June", "06" }, { "Jun", "06" }, { "July", "07" }, { "Jul", "07" }, { "August", "08" }, { "Aug", "08" }, { "September", "09" }, { "Sep", "09" }, { "October", "10" }, { "Oct", "10" }, { "November", "11" }, { "Nov", "11" }, { "December", "12" }, { "Dec", "12" } };
-        HashSet<char> signs = new HashSet<char> { '[', '(', '{', ']', ')', '}', '!', '?', ':', ',', '.',  ';', '%', '/', '`', '+', '=', '#'};
+        HashSet<char> signs = new HashSet<char> { '�', '_', '[', '(', '{', ']', ')', '}', '!', '?', ':', ',', '.',  ';', '%', '/', '`', '+', '=', '#'};
         //HashSet<char> signs = new HashSet<char> { '!', '?', ':', ',', '.', '[', ']', '(', ')', '{', '}', '.', '"', '\\', '/', '*', '<', '>', '\'', ';', '|' };
         HashSet<char> letters = new HashSet<char> { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
         HashSet<char> numbers = new HashSet<char> { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
@@ -111,10 +111,10 @@ namespace Engine
             }//first for
             for (int i = startOfText; i < words.Length; i++) //loop for the text from <Text> 
             {
-                if (words[i].Equals("") || stopWords.Contains(words[i]) || words[i][0].Equals('<') || !IsLegal(words[i])) // if stopWord or illegal word
+                if (words[i].Equals("") || stopWords.Contains(words[i]) || words[i][0].Equals('<') || words[i][0].Equals('&') || !IsLegal(words[i])) // if stopWord or illegal word
                     continue;
                 int tmp = 0;
-                while (signs.Contains(words[i][tmp]) || words[i][tmp].Equals('?'))
+                while (signs.Contains(words[i][tmp]))
                 {
                     tmp++;
                     if (tmp == words[i].Length)
@@ -570,12 +570,12 @@ namespace Engine
                         AddTerm(currentDoc, d + " dollars");
                     }
                 }
-                else
+              /*  else
                 {
                     if(!temp.Contains(words[i]))
                         temp.Add(words[i]);
                  //   AddTerm(currentDoc, words[i]);
-                }
+                }*/
             }//second for
             currentDoc.SetMaxTF();
             return terms;

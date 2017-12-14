@@ -32,7 +32,6 @@ namespace Engine
         public void PrepareToPosting(Term[] terms, Document currentDoc, int size)
         {
             string str = "";
-            //StringBuilder
             Docdictionary.Add(currentDoc.GetName(), currentDoc);
             for (int i = 0; i < terms.Length; i++)
             {
