@@ -1,42 +1,104 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using System.IO;
+using System.Diagnostics;
 
 namespace Engine
 {
     class Parser
     {
+        private List<string> temp = new List<string>();
+        private static readonly Regex CompiledRegex = new Regex(@"[^0-9a-zA-Z. %]+", RegexOptions.Compiled);
+        Indexer indexer = new Indexer();
         private HashSet<string> stopWords = new HashSet<string>();
-        HashSet<char> signs = new HashSet<char> { '!', '?', ':', ',', '.', '[', ']', '(', ')', '{', '}', '.', '"','>','<', '\\','/' };
-        //private HashSet<Term> terms = new HashSet<Term>();
-        private HashSet<Term> terms; // לא בטוח שצריך
+        Document currentDoc;
+        Dictionary<string, string> months = new Dictionary<string, string>() { { "January", "01" }, { "Jan", "01" }, { "February", "02" }, { "Feb", "02" }, { "March", "03" }, { "Mar", "03" }, { "April", "04" }, { "Apr", "04" }, { "May", "05" }, { "June", "06" }, { "Jun", "06" }, { "July", "07" }, { "Jul", "07" }, { "August", "08" }, { "Aug", "08" }, { "September", "09" }, { "Sep", "09" }, { "October", "10" }, { "Oct", "10" }, { "November", "11" }, { "Nov", "11" }, { "December", "12" }, { "Dec", "12" } };
+        HashSet<char> signs = new HashSet<char> { '[', '(', '{', ']', ')', '}', '!', '?', ':', ',', '.', ';', '%', '/', '`', '+', '=' };
+        //HashSet<char> signs = new HashSet<char> { '!', '?', ':', ',', '.', '[', ']', '(', ')', '{', '}', '.', '"', '\\', '/', '*', '<', '>', '\'', ';', '|' };
+        HashSet<char> letters = new HashSet<char> { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
+        HashSet<char> numbers = new HashSet<char> { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
+        private static Dictionary<string, Term> terms = new Dictionary<string, Term>();
         private int documentCurrentPosition = 0;
-        public Parser(string path) => ReadStopWords(path);
+        public Parser(HashSet<string> stopWords)
+        {
+            this.stopWords = stopWords;
+        }
         /// <summary>
         /// divide a text into terms according to the engine rulls
         /// </summary>
         /// <param name="str"></param> a text to parse
-        public void Parse(string str)
+        public Dictionary<string, Term> Parse(string str)
         {
-            terms = new HashSet<Term>();
-            string DOCNO = str.Substring(1, str.IndexOf("</DOCNO>") - 2);
-            Document currentDoc = new Document(DOCNO);//because str started after <DOCNO>     
-            char[] delimeters = { ' ', '\n', '\r', '-' };//לזכור לשנות dב-casenumber
+            //  str = Regex.Replace(str,  @"[^0-9a-zA-Z. %-$]+", ""); //remove unnecessary chars
+            int startOfDONCON = 0;
+            while (str[startOfDONCON].Equals(' '))
+                startOfDONCON++;
+            string DOCNO = "";
+            while (Char.IsLetterOrDigit(str[startOfDONCON]) || str[startOfDONCON].Equals('-'))
+            {
+                DOCNO += str[startOfDONCON];
+                startOfDONCON++;
+            }
+            currentDoc = new Document(DOCNO);//because str started after <DOCNO>
+            char[] delimeters = { ' ', '\n', '\r', '-', ']', ')', '}', '\\', '*', '"', '\'', '|' };
+            //char[] delimeters = { ' ', '\n', '\r', '-' };
             string[] words = str.Split(delimeters);
             int startOfText = 0;
-            for (int i = 2; i < words.Length; i++)//loop for the documnet's date the to find the begining of the text
+            for (int i = 4; i < words.Length; i++)//loop for the documnet's date the to find the begining of the text. start after the DOCNO
             {
                 string currentWord = words[i];
-                if (currentWord == "" || (stopWords.Contains(currentWord) && Char.IsLower(currentWord[0]))) // if empty line or stopWord
+                if (currentWord == "" || stopWords.Contains(currentWord)) // if empty line or stopWord
                     continue;
                 while (!words[i].Contains("<DATE")) // set the document date
                     i++;
-                i = DocDate(currentDoc, words, i);
-                if (currentWord == "" || (stopWords.Contains(currentWord) && Char.IsLower(currentWord[0]))) // if empty line or stopWord
+                //DocDate
+                currentWord = words[i];
+                int day = 0, year = 0;
+                string month = "";
+                while (!currentWord.Contains("</DATE"))
+                {
+                    if (currentWord != "")
+                    {
+                        if (currentWord.Contains("<DATE") && currentWord.Length >= 10)
+                        {
+                            if (currentWord.Contains("<DATE1") && currentWord.Length == 13)// for cases like <DATE1>920314
+                            {
+                                year = 1900 + (int)Char.GetNumericValue(currentWord[7]) * 10 + (int)Char.GetNumericValue(currentWord[8]);
+                                month += (int)Char.GetNumericValue(currentWord[9]) * 10 + (int)Char.GetNumericValue(currentWord[10]);
+                                day = (int)Char.GetNumericValue(currentWord[11]) * 10 + (int)Char.GetNumericValue(currentWord[12]);
+                            }
+                            else// for cases like <DATE>920314
+                            {
+                                year = 1900 + (int)Char.GetNumericValue(currentWord[6]) * 10 + (int)Char.GetNumericValue(currentWord[7]);
+                                month += (int)Char.GetNumericValue(currentWord[8]) * 10 + (int)Char.GetNumericValue(currentWord[9]);
+                                day = (int)Char.GetNumericValue(currentWord[10]) * 10 + (int)Char.GetNumericValue(currentWord[11]);
+                            }
+                            break;
+                        }
+                        else
+                        {
+                            if (int.TryParse(currentWord, out int x))
+                            {
+                                if (x >= 1 && x <= 31)
+                                    day = x;
+                                else if (x > 1000)
+                                    year = x;
+                            }
+                            else if (months.ContainsKey(currentWord))
+                                month = months[currentWord];
+                            if (day >= 1 && day <= 31 && year > 100 && months.ContainsValue(month))
+                                break;
+                        }
+                    }
+                    currentWord = words[++i];
+                }
+                currentDoc.SetDate(DateToString(day, month, year));
+                if (currentWord == "" || stopWords.Contains(currentWord)) // if empty line or stopWord
                     continue;
                 while (!words[i].Contains("<TEXT>"))
                 {
@@ -49,191 +111,507 @@ namespace Engine
             }//first for
             for (int i = startOfText; i < words.Length; i++) //loop for the text from <Text> 
             {
-                int currentWordLength = words[i].Length;
-                if (words[i] == "" || (stopWords.Contains(words[i]) && Char.IsLower(words[i][0]))||(AllSign(words[i]))) // if empty line or stopWord
+                if (words[i].Equals("") || stopWords.Contains(words[i]) || words[i][0].Equals('<') || !IsLegal(words[i])) // if stopWord or illegal word
                     continue;
-                if (currentWordLength > 1)
-                    if (words[i][currentWordLength - 2].Equals('\'') && words[i][currentWordLength - 1].Equals('s')) //if word ends with 's suffix
-                    {
-                        words[i] = words[i].Substring(0, words[i].IndexOf("'s"));
-                        if (words[i].Equals(""))//cases like only 's
-                            continue;
-                        currentWordLength = words[i].Length;
-                        
-                    }
-                if (char.IsNumber(words[i][0])) //if the first char is number
+                int tmp = 0;
+                while (signs.Contains(words[i][tmp]))
                 {
-                    //if the number is part of a date: int and than month or int with th suffix
-                    if ((Int32.TryParse(words[i], out int d1) && FindMonth(words[i + 1]) != 0) || words[i].Contains("th"))
-                    {
-                        i = DateCaseBeginWithNumber(currentDoc, words, i);
-                    }//DateCaseBeginWithNumber
-                     //if the whole term is a number or ends with %
-                    else if ((Double.TryParse(words[i].Substring(0, currentWordLength - 1), out double d2) && words[i][currentWordLength - 1].Equals('%')) || Double.TryParse(words[i], out double d3))
-                    {
-                        words[i] = Regex.Replace(words[i], @"[^0-9a-zA-Z. %]+", ""); //remove unnecessary chars
-                        i = NumberCase(currentDoc, words, i);
-                    }
-                }// if first char is number
-                else if (FindMonth(words[i]) != 0)// if date start with month
+                    tmp++;
+                    if (tmp == words[i].Length)
+                        break;
+                }
+                if (tmp == words[i].Length)
+                    continue;
+                else if (tmp > 0)
                 {
-                    while(i+1<words.Length)
-                    {
-                        if (words[i + 1].Equals(""))
-                            i++;
-                        else break;
-                    }
-                    if (i + 1 < words.Length )
-                    {
-                        int length = words[i + 1].Length;
-                        if (signs.Contains(words[i + 1][length-1]))
-                            words[i + 1] = words[i + 1].Substring(0, length - 1);
-                         length = words[i + 1].Length;
-                        if (Int32.TryParse(words[i + 1], out int d1)) //check if the next word after the month is a number
-                        i = DateCaseBeginWithMonth(currentDoc, words, i);
-                        //check if the next word is number with th
-                       else if (length>1)// 
+                    words[i] = words[i].Substring(tmp);
+                }
+                if (!Char.IsUpper(words[i][0]) && signs.Contains(words[i][words[i].Length - 1]))
+                    words[i] = words[i].Substring(0, words[i].Length - 1);
+                string currentWord = words[i];//for debug
+                /*if (i + 1 < words.Length - 1) // cases like The Aug. 24
+                {
+                        int indexOfCurrentWord = i;
+                        while (words[i + 1].Equals(""))
                         {
-                            if ((words[i + 1][length - 1].Equals('h') ) && (words[i + 1][length - 2].Equals('t') ) && (Int32.TryParse(words[i + 1].Substring(0, length - 2), out int d2)))
+                            i++;
+                            if (i == words.Length)
+                                break;
+                        }
+                        if(i + 1 < words.Length - 1)
+                            i++;
+                        if (stopWords.Contains(words[indexOfCurrentWord].ToLower()))
+                        {
+                            if ((months.ContainsKey(words[i + 1]) || months.ContainsKey(words[i + 1].Substring(0, words[i + 1].Length - 1))))
+                            {
+                                words[i] = Regex.Replace(words[i], @"[^0-9a-zA-Z ]+", ""); //remove unnecessary chars
+                                string month = words[i];
+                                i = DateCaseBeginWithMonth(currentDoc, words, i, month);
+                                break;
+                            }
+                        }
+                }*/
+                if (Char.IsNumber(words[i][0])) //if the first char is number
+                {
+                    int index = i;
+                    bool end = false;
+                    if (i + 1 < words.Length)
+                    {
+                        if (words[index + 1].Equals(""))
+                        {
+                            index++;
+                            if (index + 1 < words.Length)
+                            {
+                                if (words[index + 1].Equals(""))
                                 {
-                                i = DateCaseBeginWithMonth(currentDoc, words, i);
+                                    index++;
+                                    if (index + 1 < words.Length)
+                                    {
+                                        if (words[index + 1].Equals(""))
+                                        {
+                                            i = i + 2;
+                                            AddTerm(currentDoc, currentWord);
+                                            while (words[i + 1].Equals(""))
+                                            {
+                                                i++;
+                                                if (i + 1 == words.Length)
+                                                    break;
+                                            }
+                                            continue;
+                                        }
+                                    }
+                                    else
+                                        end = true;
+                                }
+                            }
+                            else
+                                end = true;
+                        }
+                        //month case
+                        if (!end)
+                        {
+                            int day = 0;
+                            if (signs.Contains(words[i][words[i].Length - 1]))
+                            {
+                                words[i] = words[i].Substring(0, words[i].Length - 1);
+                            }
+                            if (!Int32.TryParse(words[i], out day) && words[i].Length > 2)//th cases
+                            {
+                                if (words[i][words[i].Length - 2].Equals('t') && words[i][words[i].Length - 1].Equals('h'))
+                                {
+                                    Int32.TryParse(words[i].Substring(0, words[i].Length - 1), out day);
+                                }
+                            }
+                            if ((months.ContainsKey(words[index + 1]) || (months.ContainsKey(words[index + 1].Substring(0, words[index + 1].Length - 1)) && signs.Contains(words[index + 1][words[index + 1].Length - 1]))))
+                            {
+                                // DateCaseBeginWithNumber
+                                int year = 0;
+                                if (signs.Contains(words[index + 1][words[index + 1].Length - 1]))//remove sign
+                                {
+                                    words[index + 1] = words[index + 1].Substring(0, words[index + 1].Length - 1);
+                                }
+                                string month = months[words[index + 1]];
+                                if (currentWord.Contains(','))
+                                {
+                                    currentWord.Replace(',', '\0');
+                                    //  currentWord = Regex.Replace(currentWord, @"[^0-9]+", ""); //remove unnecessary chars
+                                }
+
+                                if (i + 2 < words.Length)
+                                {
+                                    int index2 = i;
+                                    bool end2 = false;
+
+                                    if (words[index2 + 2].Equals(""))
+                                    {
+                                        index2++;
+                                        i++;
+                                        if (index2 + 2 < words.Length)//find if there is a year
+                                        {
+                                            if (words[index2 + 2].Equals(""))
+                                            {
+                                                index2++;
+                                                i++;
+                                                if (index2 + 2 < words.Length)
+                                                {
+                                                    if (words[index2 + 2].Equals(""))
+                                                    {
+                                                        AddTerm(currentDoc, DateToString(day, month, year));
+                                                        while (words[i + 1].Equals(""))
+                                                        {
+                                                            i++;
+                                                            if (i + 1 == words.Length)
+                                                                break;
+                                                        }
+                                                        continue;
+                                                    }
+                                                }
+                                                else
+                                                    end2 = true;
+                                            }
+                                        }
+                                        else
+                                            end2 = true;
+                                    }
+                                    if (!end2)
+                                    {
+                                        if (signs.Contains(words[index2 + 2][words[index2 + 2].Length - 1]))
+                                        {
+                                            words[index2 + 2] = words[index2 + 2].Substring(0, words[index2 + 2].Length - 1);
+                                        }
+                                        if (!int.TryParse(words[index2 + 2], out year))//no year
+                                        {
+                                            AddTerm(currentDoc, DateToString(day, month, year));
+                                            i++;
+                                            continue;
+                                        }
+                                        else
+                                        {
+                                            if (year < 100) //cases like 12 MAY 91
+                                            {
+                                                year += 1900;
+                                            }
+                                            AddTerm(currentDoc, DateToString(day, month, year));
+                                            i = i + 2;
+                                            continue;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }//DateCaseBeginWithNumber
+                    if (!end && Double.TryParse(words[i], out double d3))
+                    {
+                        //NumberCase
+                        currentWord = words[i];
+                        //try
+                        // currentWord = Regex.Replace(currentWord, @"[,]", "");//remove unnecessary chars
+                        if (!currentWord.Contains(".") && !(currentWord.Contains("%") || words[index + 1].Contains("percentage") || (words[index + 1].Contains("percent"))))//regular number (without percent or .)
+                        {
+                            if (currentWord.Contains(','))
+                            {
+                                currentWord = Regex.Replace(currentWord, @"[^0-9]+", ""); //remove unnecessary chars
+                            }
+                            AddTerm(currentDoc, currentWord);
+                            continue;
+                        }
+                        else if (currentWord.Contains("."))//check if the number is neede to be round
+                        {
+                            if (currentWord.Contains(','))
+                            {
+                                currentWord = Regex.Replace(currentWord, @"[^0-9]+. %", ""); //remove unnecessary chars
+                            }
+                            if (!(currentWord.Contains("%") || words[index + 1].Contains("percentage") || (words[index + 1].Contains("percent"))))// cases like 10.567, without percent
+                            {
+                                if (double.TryParse(currentWord, out double d))
+                                {
+                                    d = Math.Round(d, 2);
+                                    AddTerm(currentDoc, "" + d);
+                                    continue;
+                                }
+                            }
+                            else //is percent
+                            {
+                                if (currentWord[currentWord.Length - 1].Equals('%'))// cases like 10.675%
+                                {
+                                    currentWord = currentWord.Substring(0, currentWord.Length - 1);
+                                }
+                                else // cases 10.567 precent and 10.567 precentege
+                                {
+                                    i = i + 1;
+                                }
+                                double d = Double.Parse(currentWord);
+                                d = Math.Round(d, 2);
+                                AddTerm(currentDoc, d + " percent");
+                                continue;
+                            }
+                        }// if cases need to be round
+                        else // percent without .
+                        {
+                            if (currentWord[currentWord.Length - 1].Equals('%'))
+                            {
+                                currentWord = currentWord.Substring(0, currentWord.Length - 1);
+                            }
+                            else if (words[index + 1].Equals("percentage") || words[index + 1].Equals("percent"))
+                            {
+                                i = i + 1;
+                            }
+                            currentWord = currentWord + " percent";
+                            AddTerm(currentDoc, currentWord);
+                            continue;
+                        }
+                    }
+                    //if the number is part of a date: int and than month or int with th suffix th
+                }// if first char is number
+                else if (Char.IsLetter(words[i][0]))
+                {
+                    if (i + 1 < words.Length)
+                    {
+                        int index = i;
+                        bool end = false;
+                        while (words[index + 1].Equals(""))
+                        {
+                            index++;
+                            if (index + 1 == words.Length)
+                            {
+                                end = true;
+                                break;
+                            }
+                        }
+                        // if date start with month
+                        if (!end)
+                        {
+                            if ((months.ContainsKey(words[i]) || (months.ContainsKey(words[i].Substring(0, words[i].Length - 1)) && signs.Contains(words[i][words[i].Length - 1])) && (Int32.TryParse(words[index + 1].Substring(0, words[index + 1].Length - 1), out int d1) || (Int32.TryParse(words[index + 1], out int d2)))))
+                            {
+                                if (signs.Contains(words[i][words[i].Length - 1]))
+                                    words[i] = words[i].Substring(0, words[i].Length - 1);
+                                string month = words[i];
+                                //date case begin with month
+                                int day = 0, year = 0;
+                                int firstAfterMonthValue = 0;
+                                int secondAfterMonthValue = 0;
+                                if (i + 1 < words.Length)
+                                {
+                                    while (words[i + 1].Equals(""))
+                                    {
+                                        i++;
+                                        if (i + 1 == words.Length)
+                                            break;
+                                    }
+                                    if (i + 1 >= words.Length)
+                                        break;
+                                    string firstAfterMonth = words[i + 1];
+                                    if (signs.Contains(firstAfterMonth[firstAfterMonth.Length - 1]))// remove last char if is sign
+                                    {
+                                        firstAfterMonth = firstAfterMonth.Substring(0, firstAfterMonth.Length - 1);
+                                    }
+                                    if (i + 2 < words.Length)
+                                    {
+                                        bool end1 = false;
+                                        while (words[i + 2].Equals(""))
+                                        {
+                                            i++;
+                                            if (i + 2 == words.Length)
+                                            {
+                                                end1 = true;
+                                                break;
+                                            }
+                                        }
+                                        string secondtAfterMonth = "";
+                                        if (!end1)
+                                        {
+                                            secondtAfterMonth = words[i + 2];
+                                            if (signs.Contains(secondtAfterMonth[secondtAfterMonth.Length - 1]))// remove last char if is sign
+                                            {
+                                                secondtAfterMonth = secondtAfterMonth.Substring(0, secondtAfterMonth.Length - 1);
+                                            }
+                                        }
+                                        if (Int32.TryParse(firstAfterMonth, out firstAfterMonthValue))//if the next word after the month is number
+                                        {
+                                            if (!end1 && Int32.TryParse(secondtAfterMonth, out secondAfterMonthValue))//two words after month are numbers
+                                            {
+                                                day = firstAfterMonthValue;
+                                                year = secondAfterMonthValue;
+                                                i = i + 2;
+                                            }
+                                            else//only the first word after month is number
+                                            {
+                                                i++;
+                                                if (firstAfterMonth.Length <= 2)// cases like  MAY 4
+                                                {
+                                                    day = firstAfterMonthValue;
+                                                    year = 0;
+                                                }
+                                                else if (firstAfterMonth.Length == 4)// cases like  MAY 1993
+                                                {
+                                                    year = firstAfterMonthValue;
+                                                    day = 0;
+                                                }
+                                            }
+                                        }
+                                        else//if the next word after the month is not a number
+                                        {
+                                            AddTerm(currentDoc, month);
+                                            continue;
+                                        }
+                                    }
+                                }
+                                AddTerm(currentDoc, DateToString(day, months[month], year));
+                                continue;
                             }
                         }
                     }
-                }
-                else if (!words[i].ToLower().Equals(words[i]))//check if the word contains at least one capital letter
-                {
-                    i = CapitalLetterCase(currentDoc, words, i);
-
-                }
-                else if (stopWords.Contains(words[i])) // if empty line or stopWord
-                    continue;
-                else
-                    AddTerm(currentDoc, words[i]);
-                
-            }//second for
-            Console.WriteLine("the end");
-        }
-        /// <summary>
-        /// responsible for the case when the words[i] is part of a date: int and than month or int with th suffix
-        /// </summary>
-        /// <param name="currentDoc"></param>
-        /// <param name="words"></param>
-        /// <param name="i"></param> index
-        /// <returns></returns>
-        private int DateCaseBeginWithNumber(Document currentDoc, string[] words, int i)
-        {
-            string currentWord = words[i];
-            int day = 0, month = 0, year = 0;
-            month = FindMonth(words[i + 1]);
-            if (currentWord.Contains("th"))//cases like 12th MAY 1991
-            {
-                int.TryParse(currentWord.Substring(0, currentWord.IndexOf('t')), out day);
-                if (i + 2 < words.Length)
-                {
-                    int.TryParse(words[i + 2], out year);
-                    i = i + 2;
-                }
-                else
-                {
-                    year = 0;
-                }
-            }
-            else// cases like 12 MAY 1991 / 12 MAY 91 / 14 MAY
-            {
-                int.TryParse(currentWord, out day);
-                if (words[i + 2].Length == 4)
-                {
-                    int.TryParse(words[i + 2], out year);
-                    i = i + 2;
-                }
-                else if (words[i + 2].Length == 2)
-                {
-                    int.TryParse(words[i + 2], out int tmp);
-                    year = 1900 + tmp;
-                    i = i + 2;
-                }
-                else
-                {
-                    i = i + 1;
-                }
-            }
-            AddTerm(currentDoc, DateToString(day, month, year));
-            return i;
-        }
-        /// <summary>
-        /// responsible for the case when the words[i] is month at the beginning of a date
-        /// </summary>
-        /// <param name="currentDoc"></param>
-        /// <param name="words"></param>
-        /// <param name="i"></param> index
-        /// <returns></returns>
-        private int DateCaseBeginWithMonth(Document currentDoc, string[] words, int i)
-        {
-            
-            string currentWord = words[i];
-            currentWord = Regex.Replace(currentWord, @"[^0-9a-zA-Z ]+", "");
-            int day = 0, month = FindMonth(words[i]), year = 0;
-            if (words[i + 1][words[i + 1].Length - 1].Equals(','))
-            {
-                int.TryParse(currentWord.Substring(0, currentWord.IndexOf(',')), out day);//cases like MAY 12, 1990
-                int.TryParse(words[i + 2], out year);
-                i = i + 3;
-            }
-            else if (words[i + 1].Length == 2 || words[i + 1].Length == 1) // cases like  MAY 4
-            {
-                int.TryParse(words[i + 1], out day);
-                i = i + 2;
-            }
-            else if (words[i + 1].Length == 4) // cases like  MAY 1993
-            {
-                int.TryParse(words[i + 1], out year);
-                i = i + 2;
-            }
-            AddTerm(currentDoc, DateToString(day, month, year));
-            return i;
-        }
-
-        /// <summary>
-        /// updatind the date field for any document object
-        /// </summary>
-        /// <param name="currentDoc"></param> a document to update its date
-        /// <param name="words"></param> string of the document's data
-        /// <param name="i"></param> index of the current place in the document
-        /// <returns>the current position in the documment</returns>
-        private int DocDate(Document currentDoc, string[] words, int i)
-        {
-            string currentWord = words[i];
-            
-            int day = 0, month = 0, year = 0;
-            while (!currentWord.Contains("</DATE"))
-            {
-                if (currentWord != "")
-                {
-                    currentWord = Regex.Replace(currentWord, @"[^0-9a-zA-Z ]+", ""); //remove unnecessary chars
-                    if (currentWord.IndexOf('>') != currentWord.Length - 1 && currentWord.Length == 12) // for cases like <DATE>920314
+                    if (Char.IsUpper(words[i][0]))
                     {
-                        year = 1900 + (int)Char.GetNumericValue(currentWord[6]) * 10 + (int)Char.GetNumericValue(currentWord[7]);
-                        month = (int)Char.GetNumericValue(currentWord[8]) * 10 + (int)Char.GetNumericValue(currentWord[9]);
-                        day = (int)Char.GetNumericValue(currentWord[10]) * 10 + (int)Char.GetNumericValue(currentWord[11]);
-                    }
-                    else
-                    {
-                        if (int.TryParse(currentWord, out int x))
+                        //CapitalLetterCase
+                        currentWord = words[i];
+                        currentWord = currentWord.ToLower();
+                        if (i + 1 < words.Length)// to avoid out of bound exception
                         {
-                            if (x >= 1 && x <= 31)
-                                day = x;
-                            else if (x > 1000)
-                                year = x;
+                            int index = i + 1;
+                            bool end = false;
+                            while (words[index].Equals(""))
+                            {
+                                index++;
+                                if (index == words.Length)
+                                {
+                                    end = true;
+                                    break;
+                                }
+                            }
+                            // if date start with month
+                            if (!end)
+                            {
+                                //no concatenate if the next word doesnt contain capital letter or that the word contain sign at the beginning or at the end or it not legal
+                                if (words[index][0].Equals('<') || !IsLegal(words[index]) || !Char.IsUpper(words[index][0]) ||
+                                    signs.Contains(words[index][0]) || signs.Contains(words[i][words[i].Length - 1]))
+                                {
+                                    AddTerm(currentDoc, currentWord);
+                                    continue;
+                                }
+                                else //if the next word contains capital letter
+                                {
+                                    StringBuilder sb = new StringBuilder(currentWord);
+                                    AddTerm(currentDoc, currentWord);
+                                    i++;
+                                    end = false;
+                                    if (words[i].Equals(""))
+                                    {
+                                        i++;
+                                        if (words[i].Equals(""))
+                                        {
+                                            i++;
+                                            while (words[i].Equals(""))
+                                            {
+                                                i++;
+                                                if (i >= words.Length)
+                                                {
+                                                    end = true;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if (!end)
+                                    {
+                                        int counter = 0;
+                                        //check if the next word contains capital letter and doesnt contains signs at the end or the beginning
+                                        while (!words[i][0].Equals('<') && IsLegal(words[i]) && Char.IsUpper(words[i][0]) &&
+                                        !signs.Contains(words[i][0]))
+                                        {
+                                            bool finish = false;
+                                            if (signs.Contains(words[i][words[i].Length - 1]))
+                                            {
+                                                finish = true;
+                                                words[i] = words[i].Substring(0, words[i].Length - 1);
+                                            }
+                                            currentWord = words[i].ToLower();
+                                            sb.Append(" " + currentWord);//לוודא
+                                            counter++;//num of concatenate
+                                            AddTerm(currentDoc, currentWord);
+                                            if (finish)
+                                                break;
+                                            i++;
+                                            if (i == words.Length)
+                                            {
+                                                break;
+                                            }
+                                            if (words[i].Equals(""))
+                                            {
+                                                i++;
+                                                if (i == words.Length)
+                                                {
+                                                    break;
+                                                }
+                                                if (words[i].Equals(""))
+                                                {
+                                                    break;
+                                                }
+
+                                            }
+                                        }
+                                        this.documentCurrentPosition = this.documentCurrentPosition - counter; //in order to set the position of the expression as the position of the first term
+                                        AddTerm(currentDoc, sb.ToString());
+                                        this.documentCurrentPosition = this.documentCurrentPosition + counter;
+                                        sb.Clear();
+                                    }
+                                }
+                            }
                         }
-                        else if (month == 0)
-                            month = FindMonth(currentWord);
+                        else //end of the text
+                        {
+                            AddTerm(currentDoc, currentWord);
+                        }
+                    }
+                    /* else
+                     {
+                         if (words[i].Length > 1)
+                         {
+                             if (words[i][words[i].Length - 2].Equals('\'') && words[i][words[i].Length - 1].Equals('s')) //if word ends with 's suffix
+                             {
+                                 words[i] = words[i].Substring(0, words[i].IndexOf("'s"));
+                                 if (words[i].Equals(""))//cases like only 's
+                                     continue;
+                             }
+                         }
+                         AddTerm(currentDoc, words[i]);
+                     }*/
+                }
+                else if (words[i][0].Equals('$'))//dollar case
+                {
+                    currentWord = currentWord.Substring(1);
+                    if (currentWord.Contains(','))
+                    {
+                        currentWord = Regex.Replace(currentWord, @"[^0-9]+.", ""); //remove unnecessary chars
+                    }
+                    if (Double.TryParse(currentWord, out double d))
+                    {
+                        d = Math.Round(d, 2);
+                        AddTerm(currentDoc, d + " dollars");
                     }
                 }
-                currentWord = words[++i];
+                else
+                {
+                    if (!temp.Contains(words[i]))
+                        temp.Add(words[i]);
+                    //   AddTerm(currentDoc, words[i]);
+                }
+            }//second for
+            currentDoc.SetMaxTF();
+            return terms;
+        }
+
+        public List<string> getTemp()
+        {
+            return temp;
+        }
+        /// <summary>
+        /// check if currentWord is legal: not conatains letters and number together or not contain nothing to them
+        /// </summary>
+        /// <param name="currenWord"></param>
+        /// <returns></returns>
+        private bool IsLegal(string currentWord)
+        {
+            bool containLetters = false;
+            bool containNumbers = false;
+            bool res = false;
+            //check if the word contains letters and numbers
+            for (int i = 0; i < currentWord.Length; i++)
+            {
+                if (numbers.Contains(currentWord[i]))
+                {
+                    containNumbers = true;
+                }
+                if (letters.Contains(currentWord[i]))
+                {
+                    containLetters = true;
+                }
+                if (containLetters && containNumbers)//if the word contains letters and numbers
+                    return false;
             }
-            currentDoc.SetDate(DateToString(year, month, day));
-            return i;
+            if ((containLetters && !containNumbers) || (!containLetters && containNumbers)) //if Legal
+                res = true;
+            return res;
         }
 
         /// <summary>
@@ -243,206 +621,31 @@ namespace Engine
         /// <param name="month"></param>
         /// <param name="year"></param>
         /// <returns></returns>
-        private string DateToString(int day, int month, int year)
+        private string DateToString(int day, string month, int year)
         {
             string str = "";
-            if (day == 0)
+            if (day == 0) //no day
             {
-                if (month < 10)
-                    str = "0" + month + "/" + year;
-                else
-                    str = month + "/" + year;
+                str = month + "/" + year;
+                return str;
             }
-            else if (month >= 10)
+            if (year == 0) // no year
             {
-                if (year == 0)
-                {
-                    if (day >= 10)
-                        str = day + "/" + month;
-                    else//day < 10
-                        str = "0" + day + "/" + month;
-                }
-                else
-                {
-                    if (day >= 10)
-                        str = day + "/" + month + "/" + year;
-                    else//day < 10
-                        str = "0" + day + "/" + month + year;
-                }
+                if (day >= 10)
+                    str = day + "/" + month;
+                else//day < 10
+                    str = "0" + day + "/" + month;
             }
-            else if (month < 10)
+            else
             {
-                if (year == 0)
-                {
-                    if (day >= 10)
-                        str = day + "/0" + month;
-                    else//day < 10
-                        str = "0" + day + "/0" + month;
-                }
-                else
-                {
-                    if (day >= 10)
-                        str = day + "/0" + month + "/" + year;
-                    else//day < 10
-                        str = "0" + day + "/0" + month + year;
-                }
+                if (day >= 10)
+                    str = day + "/" + month + "/" + year;
+                else//day < 10
+                    str = "0" + day + "/" + month + "/" + year;
             }
             return str;
         }
-        /// <summary>
-        /// private method that convert month to its number
-        /// </summary>
-        /// <param name="currentWord"></param>
-        /// <returns></returns>
-        private int FindMonth(string currentWord)
-        {
-            currentWord = currentWord.ToLower();
-            if (currentWord.Equals("january") || currentWord.Equals("jan"))
-                return 1;
-            else if (currentWord.Equals("february") || currentWord.Equals("feb"))
-                return 2;
-            else if (currentWord.Equals("march") || currentWord.Equals("mar"))
-                return 3;
-            else if (currentWord.Equals("april") || currentWord.Equals("apr"))
-                return 4;
-            else if (currentWord.Equals("may"))
-                return 5;
-            else if (currentWord.Equals("june") || currentWord.Equals("jun"))
-                return 6;
-            else if (currentWord.Equals("july") || currentWord.Equals("jul"))
-                return 7;
-            else if (currentWord.Equals("august") || currentWord.Equals("aug"))
-                return 8;
-            else if (currentWord.Equals("september") || currentWord.Equals("sep"))
-                return 9;
-            else if (currentWord.Equals("october") || currentWord.Equals("oct"))
-                return 10;
-            else if (currentWord.Equals("november") || currentWord.Equals("nov"))
-                return 11;
-            else if (currentWord.Equals("december") || currentWord.Equals("dec"))
-                return 12;
-            else
-                return 0;
-        }
 
-        /// <summary>
-        /// read the file of the stopwords according to the path and update the hash set
-        /// </summary>
-        /// <param name="path"></param>
-        private void ReadStopWords(string path)
-        {
-            StreamReader sr = new StreamReader(path);
-            string line = "";
-            while ((line = sr.ReadLine()) != null)
-            {
-                stopWords.Add(line);
-            }
-            sr.Close();
-        }
-
-        /// <summary>
-        /// add terms with capital letters according to the rules
-        /// </summary>
-        /// <param name="currentDoc"></param>
-        /// <param name="currentWord"></param>
-        /// <param name="i"></param>
-        /// <param name="words"></param>
-        /// <returns></returns>
-        private int CapitalLetterCase(Document currentDoc, string[] words, int i)
-        {
-            string currentWord = words[i];
-            currentWord = currentWord.ToLower();
-            if (i + 1 < words.Length)// to avoid out of bound exception
-            {
-                if(words[i + 1].ToLower().Equals(words[i + 1])|| signs.Contains(words[i][0])|| signs.Contains(words[i][words[i].Length-1]))//if the next word doesnt contain capital letter
-                {
-                    if (currentWord == "" || (stopWords.Contains(currentWord) && Char.IsLower(currentWord[0]))) // if empty line or stopWord
-                        return i;
-                    AddTerm(currentDoc, currentWord);
-                 //   i = i + 1;
-                }
-                else //if the next word contains capital letter
-                {
-                    string temp = currentWord;
-                    AddTerm(currentDoc, currentWord);
-                    //check if the next word contains capital letter and doesnt contains signs at the end or the beginning
-                    while (!(words[i + 1].ToLower().Equals(words[i + 1])) && !signs.Contains(words[i][0]) && !signs.Contains(words[i][words[i].Length - 1]))
-                    {
-                        if (words[i + 1] == "")
-                            continue;
-                        currentWord = words[i + 1].ToLower();
-                        temp = temp + " " + currentWord;
-                        AddTerm(currentDoc, currentWord);
-                        i = i + 1;
-                        if (i + 1 == words.Length)
-                        {
-                            break;
-                        }
-                    }
-                    AddTerm(currentDoc, temp);
-                }
-            }
-            else //end of the text
-            {
-                AddTerm(currentDoc, currentWord);
-            }
-            return i;
-        }
-
-        /// <summary>
-        /// responsible for the numbers cases, include percets, and fix them according to the rules
-        /// </summary>
-        /// <param name="currentDoc"></param>
-        /// <param name="currentWord"></param>
-        /// <param name="i"></param>
-        private int NumberCase(Document currentDoc, string[] words, int i)
-        {
-            int index = 0;
-            string currentWord = words[i];
-            //try
-            // currentWord = Regex.Replace(currentWord, @"[,]", "");//remove unnecessary chars
-            if (!currentWord.Contains(".") && !(currentWord.Contains("%") || words[i + 1].Contains("percentage") || (words[i + 1].Contains("percent"))))//regular number (without percent or .)
-                AddTerm(currentDoc, currentWord);
-            else if (currentWord.Contains("."))//check if the number is neede to be round
-            {
-                if (!(currentWord.Contains("%") || words[i + 1].Contains("percentage") || (words[i + 1].Contains("percent"))))// cases like 10.567, without percent
-                {
-                    double d = Double.Parse(currentWord);
-                    d = Math.Round(d, 2);
-                    AddTerm(currentDoc, "" + d);
-                }
-                else //is percent
-                {
-                    if (currentWord.Contains("%"))// cases like 10.675%
-                    {
-                        index = currentWord.IndexOf("%");
-                        currentWord = currentWord.Substring(0, index);
-                    }
-                    else // cases 10.567 precent and 10.567 precentege
-                    {
-                        i = i + 1;
-                    }
-                    double d = Double.Parse(currentWord);
-                    d = Math.Round(d, 2);
-                    AddTerm(currentDoc, d + " percent");
-                }
-            }// if cases need to be round
-            else // percent without .
-            {
-                if (currentWord.Contains("%"))
-                {
-                    index = currentWord.IndexOf("%");
-                    currentWord = currentWord.Substring(0, index);
-                }
-                else if (words[i + 1].Equals("percentage") || words[i + 1].Equals("percent"))
-                {
-                    i = i + 1;
-                }
-                currentWord = currentWord + " percent";
-                AddTerm(currentDoc, currentWord);
-            }
-            return i;
-        }
 
         /// <summary>
         /// add new term to the collection and updating the term and document's details accordingly
@@ -452,33 +655,28 @@ namespace Engine
         /// <param name="position"></param> the position of the term in the current document
         private void AddTerm(Document currentDoc, string termName)
         {
-            if (signs.Contains(termName[termName.Length - 1]) || signs.Contains(termName[0]))
+            if (signs.Contains(termName[termName.Length - 1]))
             {
-                termName = Regex.Replace(termName, @"[^0-9a-zA-Z ]+", ""); //remove unnecessary chars
-                if (termName == "" || (stopWords.Contains(termName) && Char.IsLower(termName[0]))) // if empty line or stopWord
-                    return;
+                termName = termName.Substring(0, termName.Length - 1); //remove unnecessary chars
             }
-            Term t = new Term(termName);
-            t.updateDetails(currentDoc, this.documentCurrentPosition);
-            currentDoc.addTerm(t);
+            if (termName == "" || (stopWords.Contains(termName) && Char.IsLower(termName[0]))) // if empty line or stopWord
+                return;
+            Term t;
+            if (terms.ContainsKey(termName))
+                t = terms[termName];
+            else
+            {
+                t = new Term(termName);
+                terms.Add(termName, t);
+            }
+            t.UpdateDetails(currentDoc, this.documentCurrentPosition);
+            currentDoc.AddTerm(t);
             this.documentCurrentPosition++;
-            terms.Add(t);
-            //send to indexer
         }
-        /// <summary>
-        /// check if term composed of  just signs for example the term: /"
-        /// </summary>
-        /// <param name="termName"></param>
-        /// <returns>true- if the term made of signs
-        /// false- if the term is not just signs</returns>
-        private bool AllSign(string termName)
+
+        public Document GetDoc()
         {
-            for ( int j=0; j<termName.Length; j++)
-            {
-                if (!signs.Contains(termName[j]))
-                    return false; 
-            }
-            return true; 
+            return currentDoc;
         }
-    }//
+    }
 }
