@@ -11,38 +11,29 @@ namespace Engine
     {
         private string name;
         int max_tf;
+        int length;
         string date;
-        ArrayList terms;
         public Document(string name)
         {
             this.name = name;
             max_tf = 0;
-            terms = new ArrayList();
+            length = 0;
         }
-
         public int GetMaxTF()
         {
             return max_tf;
         }
         public int GetLength()
         {
-            return terms.Count;
+            return length;
+        }
+        public void SetLength(int length)
+        {
+            this.length = length;
         }
         public void SetDate(string date)
         {
             this.date = date;
-        }
-
-        /// <summary>
-        /// add term to the arraylist only if its new (unique)
-        /// </summary>
-        /// <param name="term"></param>
-        public void AddTerm(Term term)
-        {
-            if (!terms.Contains(term))
-            {
-                terms.Add(term);
-            }
         }
 
         /// <summary>
@@ -56,29 +47,14 @@ namespace Engine
             return name.Equals(((Document)obj).name);
         }
 
-        public bool ContainTerm(Term term)
-        {
-            return terms.Contains(term);
-        }
-
-        public void SetMaxTF()
-        {
-            int max = -1;
-            for (int i = 0; i < terms.Count; i++)
-            {
-                int currentTF = ((Term)terms[i]).GetTF(this);
-                if (currentTF > max)
-                {
-                    max = currentTF;
-                }
-            }
-            max_tf = max;
-        }
-
         public String GetName()
         {
             return name;
         }
 
+        public void SetMaxTF(int maxTF)
+        {
+            this.max_tf = maxTF;
+        }
     }
 }

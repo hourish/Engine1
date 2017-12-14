@@ -14,7 +14,6 @@ namespace Engine
         string path;
         //Parser parser;
         private  Regex CompiledRegex;
-        private double precent;
         private string[] filesPaths;
         //int index;
      // private static readonly  Regex CompiledRegex = new Regex(Regex.Escape("<DOCNO>") + "(.*?)" + Regex.Escape("</TEXT>"), RegexOptions.Singleline);
@@ -33,20 +32,8 @@ namespace Engine
         /// <returns></returns>
         public Match Seperate(int index)
         {
-            
-                string fileText = File.ReadAllText(filesPaths[index]);
-                
-                //Match matchTEXT = CompiledRegex.Match(fileText);
-                return CompiledRegex.Match(fileText);
-            /*
-                while (matchTEXT.Success)
-                {
-                    parser.Parse(matchTEXT.Groups[1].Value);
-                    matchTEXT = matchTEXT.NextMatch();
-                    
-                }
-                */
-
+            string fileText = File.ReadAllText(filesPaths[index]);
+            return CompiledRegex.Match(fileText);
         }
         /// <summary>
         /// return the amount of files in specific path 
