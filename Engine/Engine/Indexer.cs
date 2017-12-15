@@ -14,7 +14,6 @@ namespace Engine
     {
         Dictionary<string, Document> Docdictionary = new Dictionary<string,Document>(); //the dictionary of the corpus
         Dictionary<string, StringBuilder> termsToPosting = new Dictionary<string, StringBuilder>();
-        List<string> tempTermList = new List<string>();
         int postingNumber = 0;
         int tempPostingFilesCounter;
         public Indexer()
@@ -28,6 +27,7 @@ namespace Engine
         /// <param name="currentDoc"></param>
         public void PrepareToPosting(Term[] terms, Document currentDoc)
         {
+          //  Console.WriteLine("start PrepareToPosting");
             //string str = "";
 
             // Docdictionary.Add(currentDoc.GetName(), currentDoc);
@@ -46,6 +46,7 @@ namespace Engine
                 
 
             }
+           // Console.WriteLine("finish PrepareToPosting");
         }
         /// <summary>
         /// sort the list of terms, merge the difrrent parts of the term and write them on the temporarly posting file
@@ -53,25 +54,29 @@ namespace Engine
         /// <param name="path"> the where to write the temporarly posting file</param>
         public void CreateTempPostingFile(string path)
         {
-            
+            Console.WriteLine("CreateTempPostingFile");
+            List<string> tempTermList = termsToPosting.Keys.ToList();
             StringBuilder str =new StringBuilder("");
             //..termsToPosting=termsToPosting.OrderBy(termsToPosting => termsToPosting.Key);
-            for (int i = 0; i < termsToPosting.Count; i++)
+          /*  for (int i = 0; i < termsToPosting.Count; i++)
             {
-                tempTermList.Add(termsToPosting.ElementAt(i).Key + "|" + termsToPosting.ElementAt(i).Value.ToString() + "\n");
-            }
+                tempTermList.Add(termsToPosting.ElementAt(i).Key);
+            }*/
+            Console.WriteLine("CreateTempPostingFile before sort");
             tempTermList.Sort();
-                //for (int i= termsToPosting.Count-1; i>=0;i--)
+            Console.WriteLine("CreateTempPostingFile after sort");
+            //for (int i= termsToPosting.Count-1; i>=0;i--)
             for (int i = 0; i <tempTermList.Count; i++)
             {
                 //str.Append(termsToPosting.ElementAt(i).Key + "|" + termsToPosting.ElementAt(i).Value.ToString() + "\n");
-                str.Append(tempTermList[i]);
+                str.Append(tempTermList[i]).Append("|" + termsToPosting[tempTermList[i]].ToString() + "\n");
                 //Console.WriteLine(str.ToString());
             }
+            Console.WriteLine("after for");
             termsToPosting.Clear();
             string newPath = path + "\\TempPostingFileNumber_" + tempPostingFilesCounter;
             File.WriteAllText(newPath, str.ToString());
-            tempTermList.Clear();
+        //    tempTermList.Clear();
             tempPostingFilesCounter++;
 
         }
@@ -95,7 +100,15 @@ namespace Engine
             {
                 if ((line2 = file2.ReadLine()) != null)
                 {
+                    if (!tempDic.ContainsKey(line2))
                         tempDic.Add(line2, 2);
+                    else
+                    {
+                        i--;
+                        Console.WriteLine("before while");
+                        Console.WriteLine(pathFile1);
+                        Console.WriteLine(pathFile2);
+                    }
                 }
             }
             while ((!file1.EndOfStream) || (!file2.EndOfStream))// going throgh the files and stop when he got to the end of them 
@@ -130,7 +143,15 @@ namespace Engine
                         tempDic.Remove(tempDic.ElementAt(0).Key);
                         if ((line1 = file1.ReadLine()) != null)
                         {
+                            if (!tempDic.ContainsKey(line2))
                                 tempDic.Add(line1, 1);
+                            else
+                            {
+                                i--;
+                                Console.WriteLine("while if");
+                                Console.WriteLine(pathFile1);
+                                Console.WriteLine(pathFile2);
+                            }
                         }
                     }
                 }
@@ -141,7 +162,15 @@ namespace Engine
                         tempDic.Remove(tempDic.ElementAt(0).Key);
                         if ((line2 = file2.ReadLine()) != null)
                         {
+                            if (!tempDic.ContainsKey(line2))
                                 tempDic.Add(line2, 2);
+                            else
+                            {
+                                i--;
+                                Console.WriteLine("while else");
+                                Console.WriteLine(pathFile1);
+                                Console.WriteLine(pathFile2);
+                            }
                         }
                     }
                 }
