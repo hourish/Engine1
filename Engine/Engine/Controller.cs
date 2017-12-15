@@ -37,9 +37,9 @@ namespace Engine
                     Term[] terms = parser.Parse(matchTEXT.Groups[1].Value).Values.ToArray();
                     indexer.PrepareToPosting(terms, currentDoc = parser.GetDoc());
                     int max = -1;
-                    for (int j = 0; j < terms.Length; i++)
+                    for (int j = 0; j < terms.Length; j++)
                     {
-                        int currentTF = terms[i].GetTF(currentDoc);
+                        int currentTF = terms[j].GetTF(currentDoc);
                         if (currentTF > max)
                         {
                             max = currentTF;

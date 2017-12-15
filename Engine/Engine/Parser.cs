@@ -670,7 +670,6 @@ namespace Engine
                     terms.Add(termName, t);
                 }
                 t.UpdateDetails(currentDoc, this.documentCurrentPosition);
-                currentDoc.AddTerm(t);
                 this.documentCurrentPosition++;
             }
 
