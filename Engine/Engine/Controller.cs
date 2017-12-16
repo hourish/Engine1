@@ -15,6 +15,7 @@ namespace Engine
         Indexer indexer = new Indexer();
         public void Engine(string path)
         {
+            
             ReadFile rf = new ReadFile(path);
             Parser parser = new Parser(rf.ReadStopWords(path + "\\stop_words.txt"));
             int filesAmount = rf.FilesAmount();
@@ -29,60 +30,66 @@ namespace Engine
             long tenPrecent = (size * 9) / 100;
             long numFiles = tenPrecent / avgFilesSize;
             int count = 0;
-          /*  for (int i = 0; i < filesAmount; i++)//going through the files in the dictionery and send each to the parser 
-            {
-                Match matchTEXT = rf.Seperate(i);// get a sperated files from red file
-                while (matchTEXT.Success)
-                {
-                    Term[] terms = parser.Parse(matchTEXT.Groups[1].Value).Values.ToArray();
-                     indexer.PrepareToPosting(terms, currentDoc = parser.GetDoc());
-                     int max = -1;
-                     for (int j = 0; j < terms.Length; j++)
-                     {
-                         int currentTF = terms[j].GetTF(currentDoc);
-                         if (currentTF > max)
-                         {
-                             max = currentTF;
-                         }
-                     }
-                    currentDoc.SetMaxTF(max);
-                    currentDoc.SetLength(terms.Length);
-                  //  Console.WriteLine("finish SetMaxTF and SetLength");
-                    indexer.AddDoucToDictionary(currentDoc);
-                    matchTEXT = matchTEXT.NextMatch();
-                }          
-                count++;
-              //  Console.WriteLine("count " + count + " numFiles " + numFiles);
-                if (count == numFiles)
-                {
-                    indexer.CreateTempPostingFile(tempPath);
-                    count = 0;
-                }
-            }//for
-            if(count > 0)// if we finished the for and there are still terms in the hash
-            {
-                indexer.CreateTempPostingFile(tempPath);
-            }*/
-            int finalFolder = Directory.GetFiles(finalPath, "*.*", SearchOption.AllDirectories).Length;
-            int temporarlyPostingFolder = Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories).Length;
-            // continue until there is just one file in one of the folders
-            while (temporarlyPostingFolder >= 1 && finalFolder == 0)
-            {
-                indexer.SetPostingNumber(0);
-                Merge(tempPath, finalPath);
-                temporarlyPostingFolder = Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories).Length;
-                finalFolder = Directory.GetFiles(finalPath, "*.*", SearchOption.AllDirectories).Length;
-                // if (temporarlyPostingFolder.Length == 1 && !Directory.EnumerateFiles(finalPath).Any())// if the final posting is in the temp directory so it move it to the right directory
-                if (temporarlyPostingFolder == 0 && finalFolder == 1) { //end
-                    break;
-                }
-                else
-                {
-                    Merge(finalPath, tempPath);
-                    temporarlyPostingFolder = Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories).Length;
-                    finalFolder = Directory.GetFiles(finalPath, "*.*", SearchOption.AllDirectories).Length;
-                }
-            }
+            /*
+             for (int i = 0; i < filesAmount; i++)//going through the files in the dictionery and send each to the parser 
+             {
+                 Match matchTEXT = rf.Seperate(i);// get a sperated files from red file
+                 while (matchTEXT.Success)
+                 {
+                     Term[] terms = parser.Parse(matchTEXT.Groups[1].Value).Values.ToArray();
+                      indexer.PrepareToPosting(terms, currentDoc = parser.GetDoc());
+                      int max = -1;
+                      for (int j = 0; j < terms.Length; j++)
+                      {
+                          int currentTF = terms[j].GetTF(currentDoc);
+                          if (currentTF > max)
+                          {
+                              max = currentTF;
+                          }
+                      }
+                     currentDoc.SetMaxTF(max);
+                     currentDoc.SetLength(terms.Length);
+                   //  Console.WriteLine("finish SetMaxTF and SetLength");
+                     indexer.AddDoucToDictionary(currentDoc);
+                     matchTEXT = matchTEXT.NextMatch();
+                 }          
+                 count++;
+               //  Console.WriteLine("count " + count + " numFiles " + numFiles);
+                 if (count == numFiles)
+                 {
+                     indexer.CreateTempPostingFile(tempPath);
+                     count = 0;
+                 }
+             }//for
+             if(count > 0)// if we finished the for and there are still terms in the hash
+             {
+                 indexer.CreateTempPostingFile(tempPath);
+             }
+             int finalFolder = Directory.GetFiles(finalPath, "*.*", SearchOption.AllDirectories).Length;
+             int temporarlyPostingFolder = Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories).Length;
+             // continue until there is just one file in one of the folders
+             while (temporarlyPostingFolder >= 1 && finalFolder == 0)
+             {
+                 indexer.SetPostingNumber(0);
+                 Merge(tempPath, finalPath);
+                 temporarlyPostingFolder = Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories).Length;
+                 finalFolder = Directory.GetFiles(finalPath, "*.*", SearchOption.AllDirectories).Length;
+                 // if (temporarlyPostingFolder.Length == 1 && !Directory.EnumerateFiles(finalPath).Any())// if the final posting is in the temp directory so it move it to the right directory
+                 if (temporarlyPostingFolder == 0 && finalFolder == 2) { //end
+                     break;
+                 }
+                 else
+                 {
+                     Merge(finalPath, tempPath);
+                     temporarlyPostingFolder = Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories).Length;
+                     finalFolder = Directory.GetFiles(finalPath, "*.*", SearchOption.AllDirectories).Length;
+                 }
+             }
+             */
+           //PrepTo("./temp Posting Files/posting0", "./finalPosting/posting0");
+           // PrepTo("./temp Posting Files/posting1", "./finalPosting/posting1");
+            indexer.FinalMerge("./temp Posting Files/posting0", "./temp Posting Files/posting1","./finalPosting");
+
            Console.WriteLine("the end");
        }//engine
        /// <summary>
@@ -112,6 +119,21 @@ namespace Engine
 
 
            }
+
+        public void PrepTo(string path, string path2)
+        {
+            string line ;
+            StreamReader file1 = new StreamReader(path);
+            StreamWriter final = new StreamWriter(path2);
+            while((line = file1.ReadLine())!=null)
+            {
+                string line1 = line + "=5";
+                final.WriteLine(line1);
+                final.Flush();
+
+            }
+            file1.Close();
+        }
     }
 }
 

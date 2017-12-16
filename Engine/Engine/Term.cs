@@ -31,6 +31,8 @@ namespace Engine
                     else
                         res += positions[j] + "?";
                 }
+                res = res + "_" + positions.Count+"_";
+                res = res + "=" + positions.Count;
             }
             else
                 res = "";
