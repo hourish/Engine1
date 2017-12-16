@@ -26,6 +26,7 @@ namespace Engine
                
             
         }
+        
         /// <summary>
         /// sperate directory into files
         /// </summary>
@@ -35,6 +36,7 @@ namespace Engine
             string fileText = File.ReadAllText(filesPaths[index]);
             return CompiledRegex.Match(fileText);
         }
+  
         /// <summary>
         /// return the amount of files in specific path 
         /// </summary>

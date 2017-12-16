@@ -13,6 +13,7 @@ namespace Engine
     class Controller
     {
         Indexer indexer = new Indexer();
+        
         public void Engine(string path)
         {
             ReadFile rf = new ReadFile(path);
@@ -29,7 +30,7 @@ namespace Engine
             long tenPrecent = (size * 9) / 100;
             long numFiles = tenPrecent / avgFilesSize;
             int count = 0;
-         /*   for (int i = 0; i < filesAmount; i++)//going through the files in the dictionery and send each to the parser 
+            for (int i = 0; i < filesAmount; i++)//going through the files in the dictionery and send each to the parser 
             {
                 Match matchTEXT = rf.Seperate(i);// get a sperated files from red file
                 while (matchTEXT.Success)
@@ -48,7 +49,7 @@ namespace Engine
                     currentDoc.SetMaxTF(max);
                     currentDoc.SetLength(terms.Length);
                   //  Console.WriteLine("finish SetMaxTF and SetLength");
-                    indexer.AddDoucToDictionary(currentDoc);
+                    indexer.AddDocToDictionary(currentDoc);
                     matchTEXT = matchTEXT.NextMatch();
                 }          
                 count++;
@@ -58,7 +59,7 @@ namespace Engine
                     indexer.CreateTempPostingFile(tempPath);
                     count = 0;
                 }
-            }//for*/
+            }//for
             if(count > 0)// if we finished the for and there are still terms in the hash
             {
                 indexer.CreateTempPostingFile(tempPath);
@@ -106,26 +107,26 @@ namespace Engine
        /// <param name="source"></param>
        /// <param name="dest"></param>
        public void Merge(string source, string dest)
-           {
-               string[] temporarlyPostingFolder = Directory.GetFiles(source, "*.*", SearchOption.AllDirectories);
-               int index = 0;//if even number of files
-               // if there id odd number of files in the source it move one file to the dest folder
-               if (temporarlyPostingFolder.Length % 2 != 0)
-               {
-                   string fileName = Path.GetFileName(temporarlyPostingFolder[0]);//take a file
-                   string destFile = Path.Combine(dest, fileName);//find new path to destination file
-                   File.Copy(temporarlyPostingFolder[0], destFile, true);//copy the file to the new path
-                   File.Delete(temporarlyPostingFolder[0]);//delete the file from the old path
-                   index = 1;
-                   indexer.SetPostingNumber(1);
+       {
+            string[] temporarlyPostingFolder = Directory.GetFiles(source, "*.*", SearchOption.AllDirectories);
+            int index = 0;//if even number of files
+            // if there id odd number of files in the source it move one file to the dest folder
+            if (temporarlyPostingFolder.Length % 2 != 0)
+            {
+                string fileName = Path.GetFileName(temporarlyPostingFolder[0]);//take a file
+                string destFile = Path.Combine(dest, fileName);//find new path to destination file
+                File.Copy(temporarlyPostingFolder[0], destFile, true);//copy the file to the new path
+                File.Delete(temporarlyPostingFolder[0]);//delete the file from the old path
+                index = 1;
+                indexer.SetPostingNumber(1);
             }
             for (int i = index; i < temporarlyPostingFolder.Length; i = i + 2)
-               {
-                   indexer.Merge(temporarlyPostingFolder[i], temporarlyPostingFolder[i+1], dest);//merge two file to destination direcory
-                   File.Delete(temporarlyPostingFolder[i]);
-                   File.Delete(temporarlyPostingFolder[i+1]);
-               }
-           }
+            {
+                indexer.Merge(temporarlyPostingFolder[i], temporarlyPostingFolder[i+1], dest);//merge two file to destination direcory
+                File.Delete(temporarlyPostingFolder[i]);
+                File.Delete(temporarlyPostingFolder[i+1]);
+            }
+       }
     }
 }
 

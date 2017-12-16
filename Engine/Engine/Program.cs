@@ -12,11 +12,11 @@ namespace Engine
     {
         static void  Main(string[] args)
         {
-            // string path = @"C:\Users\Shani\Desktop\study\first semester\Ihzur\Engine\corpus\corpus";
-            // Controller control = new Controller();
-            //  control.Engine(path);
+            string path = @"C:\Users\Shani\Desktop\study\first semester\Ihzur\Engine\corpus\corpus";
+            Controller control = new Controller();
+            control.Engine(path);
 
-            HashSet<string> hs = new HashSet<string>();
+           /* HashSet<string> hs = new HashSet<string>();
             string[] from = Directory.GetFiles(@".\finalPosting", "*.*", SearchOption.AllDirectories);
             for(int i = 0; i < from.Length; i++)
             {
@@ -49,18 +49,29 @@ namespace Engine
                 }
 
                 Console.WriteLine(hs.Count);
+                Console.WriteLine(l.Count);
+
                 for (int j = 1; j < l.Count; j++)
                 {
                     if (String.Compare(l[j - 1], l[j]) > 0)
                     {
+                        Console.WriteLine("!!");
+
                         Console.WriteLine(l[j - 1]);
                         Console.WriteLine(l[j]);
                     }
+                    if(l[j-1] == l[j])
+                    {
+                        Console.WriteLine("the first word is " + l[j - 1] + " in index " + (j-1));
+                        Console.WriteLine("the second word is " + l[j] + " in index " + j);
+                        Console.WriteLine();
+                    }
                 }
+                hs.Clear();
 
             }
             Console.WriteLine("end");
-            Console.ReadLine();
+            Console.ReadLine();*/
         }
     }
 }

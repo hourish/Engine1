@@ -12,12 +12,12 @@ namespace Engine
 {
     class Indexer
     {
-        Dictionary<string, Document> Docdictionary = new Dictionary<string,Document>(); //the dictionary of the corpus
         Dictionary<string, StringBuilder> termsToPosting = new Dictionary<string, StringBuilder>();
-        int postingNumber = 0;
+        int postingNumber;
         int tempPostingFilesCounter;
         public Indexer()
         {
+            postingNumber = 0;
             tempPostingFilesCounter = 0;
         }
         /// <summary>
@@ -27,14 +27,8 @@ namespace Engine
         /// <param name="currentDoc"></param>
         public void PrepareToPosting(Term[] terms, Document currentDoc)
         {
-          //  Console.WriteLine("start PrepareToPosting");
-            //string str = "";
-
-            // Docdictionary.Add(currentDoc.GetName(), currentDoc);
             for (int i = 0; i < terms.Length; i++)
             {
-                //string temp = terms[i].GetName() + "|";
-
                 if (termsToPosting.ContainsKey(terms[i].GetName()))
                 {
                     termsToPosting[terms[i].GetName()].Append(terms[i].StringToPosting(currentDoc));
@@ -42,11 +36,8 @@ namespace Engine
                 else
                 {
                     termsToPosting.Add(terms[i].GetName(), new StringBuilder(terms[i].StringToPosting(currentDoc)));
-                }
-                
-
+                }               
             }
-           // Console.WriteLine("finish PrepareToPosting");
         }
         /// <summary>
         /// sort the list of terms, merge the difrrent parts of the term and write them on the temporarly posting file
@@ -57,26 +48,16 @@ namespace Engine
             Console.WriteLine("CreateTempPostingFile");
             List<string> tempTermList = termsToPosting.Keys.ToList();
             StringBuilder str =new StringBuilder("");
-            //..termsToPosting=termsToPosting.OrderBy(termsToPosting => termsToPosting.Key);
-          /*  for (int i = 0; i < termsToPosting.Count; i++)
-            {
-                tempTermList.Add(termsToPosting.ElementAt(i).Key);
-            }*/
             Console.WriteLine("CreateTempPostingFile before sort");
             tempTermList.Sort();
             Console.WriteLine("CreateTempPostingFile after sort");
-            //for (int i= termsToPosting.Count-1; i>=0;i--)
             for (int i = 0; i <tempTermList.Count; i++)
             {
-                //str.Append(termsToPosting.ElementAt(i).Key + "|" + termsToPosting.ElementAt(i).Value.ToString() + "\n");
                 str.Append(tempTermList[i]).Append("|" + termsToPosting[tempTermList[i]].ToString() + "\n");
-                //Console.WriteLine(str.ToString());
             }
-            Console.WriteLine("after for");
             termsToPosting.Clear();
             string newPath = path + "\\TempPostingFileNumber_" + tempPostingFilesCounter;
             File.WriteAllText(newPath, str.ToString());
-        //    tempTermList.Clear();
             tempPostingFilesCounter++;
 
         }
@@ -322,12 +303,7 @@ namespace Engine
         public void SetPostingNumber(int num)
         {
             postingNumber = num;
-        }
-
-        public void AddDoucToDictionary(Document currentDoc)
-        {
-            Docdictionary.Add(currentDoc.GetName(), currentDoc);
-        }           
+        }       
     }
 }
 

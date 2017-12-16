@@ -12,14 +12,11 @@ namespace Engine
     {
         class Parser
         {
-           // private List<string> temp = new List<string>();
-            private static readonly Regex CompiledRegex = new Regex(@"[^0-9a-zA-Z. %]+", RegexOptions.Compiled);
             Indexer indexer = new Indexer();
             private HashSet<string> stopWords = new HashSet<string>();
             Document currentDoc;
             Dictionary<string, string> months = new Dictionary<string, string>() { { "January", "01" }, { "Jan", "01" }, { "February", "02" }, { "Feb", "02" }, { "March", "03" }, { "Mar", "03" }, { "April", "04" }, { "Apr", "04" }, { "May", "05" }, { "June", "06" }, { "Jun", "06" }, { "July", "07" }, { "Jul", "07" }, { "August", "08" }, { "Aug", "08" }, { "September", "09" }, { "Sep", "09" }, { "October", "10" }, { "Oct", "10" }, { "November", "11" }, { "Nov", "11" }, { "December", "12" }, { "Dec", "12" } };
             HashSet<char> signs = new HashSet<char> { '�', '_', '[', '(', '{', ']', ')', '}', '!', '?', ':', ',', '.', ';', '%', '/', '`', '+', '=', '#' };
-            //HashSet<char> signs = new HashSet<char> { '!', '?', ':', ',', '.', '[', ']', '(', ')', '{', '}', '.', '"', '\\', '/', '*', '<', '>', '\'', ';', '|' };
             HashSet<char> letters = new HashSet<char> { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
             HashSet<char> numbers = new HashSet<char> { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
             private Dictionary<string, Term> terms = new Dictionary<string, Term>();
@@ -34,9 +31,8 @@ namespace Engine
             /// <param name="str"></param> a text to parse
             public Dictionary<string, Term> Parse(string str)
             {
-           // Console.WriteLine("start parse");
-            terms.Clear();
-                //  str = Regex.Replace(str,  @"[^0-9a-zA-Z. %-$]+", ""); //remove unnecessary chars
+                documentCurrentPosition = 0;
+                terms.Clear();
                 int startOfDONCON = 0;
                 while (str[startOfDONCON].Equals(' '))
                     startOfDONCON++;
@@ -231,7 +227,7 @@ namespace Engine
                                                     {
                                                         if (words[index2 + 2].Equals(""))
                                                         {
-                                                            AddTerm(currentDoc, DateToString(day, month, year));
+                                                            AddTerm(DateToString(day, month, year));
                                                             while (words[i + 1].Equals(""))
                                                             {
                                                                 i++;
@@ -256,7 +252,7 @@ namespace Engine
                                             }
                                             if (!int.TryParse(words[index2 + 2], out year))//no year
                                             {
-                                                AddTerm(currentDoc, DateToString(day, month, year));
+                                                AddTerm(DateToString(day, month, year));
                                                 i++;
                                                 continue;
                                             }
@@ -266,7 +262,7 @@ namespace Engine
                                                 {
                                                     year += 1900;
                                                 }
-                                                AddTerm(currentDoc, DateToString(day, month, year));
+                                                AddTerm(DateToString(day, month, year));
                                                 i = i + 2;
                                                 continue;
                                             }
@@ -287,7 +283,7 @@ namespace Engine
                                 {
                                     currentWord = Regex.Replace(currentWord, @"[^0-9]+", ""); //remove unnecessary chars
                                 }
-                                AddTerm(currentDoc, currentWord);
+                                AddTerm(currentWord);
                                 continue;
                             }
                             else if (currentWord.Contains("."))//check if the number is neede to be round
@@ -301,7 +297,7 @@ namespace Engine
                                     if (double.TryParse(currentWord, out double d))
                                     {
                                         d = Math.Round(d, 2);
-                                        AddTerm(currentDoc, "" + d);
+                                        AddTerm("" + d);
                                         continue;
                                     }
                                 }
@@ -317,7 +313,7 @@ namespace Engine
                                     }
                                     double d = Double.Parse(currentWord);
                                     d = Math.Round(d, 2);
-                                    AddTerm(currentDoc, d + " percent");
+                                    AddTerm(d + " percent");
                                     continue;
                                 }
                             }// if cases need to be round
@@ -332,7 +328,7 @@ namespace Engine
                                     i = i + 1;
                                 }
                                 currentWord = currentWord + " percent";
-                                AddTerm(currentDoc, currentWord);
+                                AddTerm(currentWord);
                                 continue;
                             }
                         }
@@ -426,12 +422,12 @@ namespace Engine
                                             }
                                             else//if the next word after the month is not a number
                                             {
-                                                AddTerm(currentDoc, month);
+                                                AddTerm(month);
                                                 continue;
                                             }
                                         }
                                     }
-                                    AddTerm(currentDoc, DateToString(day, months[month], year));
+                                    AddTerm(DateToString(day, months[month], year));
                                     continue;
                                 }
                             }
@@ -461,13 +457,13 @@ namespace Engine
                                     if (words[index][0].Equals('<') || !IsLegal(words[index]) || !Char.IsUpper(words[index][0]) ||
                                         signs.Contains(words[index][0]) || signs.Contains(words[i][words[i].Length - 1]))
                                     {
-                                        AddTerm(currentDoc, currentWord);
+                                        AddTerm(currentWord);
                                         continue;
                                     }
                                     else //if the next word contains capital letter
                                     {
                                         StringBuilder sb = new StringBuilder(currentWord);
-                                        AddTerm(currentDoc, currentWord);
+                                        AddTerm(currentWord);
                                         i++;
                                         end = false;
                                         if (words[i].Equals(""))
@@ -503,7 +499,7 @@ namespace Engine
                                                 currentWord = words[i].ToLower();
                                                 sb.Append(" " + currentWord);//לוודא
                                                 counter++;//num of concatenate
-                                                AddTerm(currentDoc, currentWord);
+                                                AddTerm(currentWord);
                                                 if (finish)
                                                     break;
                                                 i++;
@@ -526,7 +522,7 @@ namespace Engine
                                                 }
                                             }
                                             this.documentCurrentPosition = this.documentCurrentPosition - counter; //in order to set the position of the expression as the position of the first term
-                                            AddTerm(currentDoc, sb.ToString());
+                                            AddTerm(sb.ToString());
                                             this.documentCurrentPosition = this.documentCurrentPosition + counter;
                                             sb.Clear();
                                         }
@@ -535,7 +531,7 @@ namespace Engine
                             }
                             else //end of the text
                             {
-                                AddTerm(currentDoc, currentWord);
+                                AddTerm(currentWord);
                             }
                         }
                         /* else
@@ -562,7 +558,7 @@ namespace Engine
                         if (Double.TryParse(currentWord, out double d))
                         {
                             d = Math.Round(d, 2);
-                            AddTerm(currentDoc, d + " dollars");
+                            AddTerm(d + " dollars");
                         }
                     }
                     /*  else
@@ -574,12 +570,7 @@ namespace Engine
                 }//second for
            // Console.WriteLine("finish parse");
             return terms;
-            }
-            
-           /* public List<string> getTemp()
-            {
-                return temp;
-            }*/
+            }          
             /// <summary>
             /// check if currentWord is legal: not conatains letters and number together or not contain nothing to them
             /// </summary>
@@ -608,7 +599,6 @@ namespace Engine
                     res = true;
                 return res;
             }
-
             /// <summary>
             /// convert integers that present day, month and year to string of date according to the rules
             /// </summary>
@@ -640,15 +630,11 @@ namespace Engine
                 }
                 return str;
             }
-
-
             /// <summary>
             /// add new term to the collection and updating the term and document's details accordingly
             /// </summary>
-            /// <param name="currentDoc"></param>
             /// <param name="termName"></param>
-            /// <param name="position"></param> the position of the term in the current document
-            private void AddTerm(Document currentDoc, string termName)
+            private void AddTerm(string termName)
             {
                 if (signs.Contains(termName[termName.Length - 1]))
                 {
@@ -667,7 +653,6 @@ namespace Engine
                 t.UpdateDetails(currentDoc, this.documentCurrentPosition);
                 this.documentCurrentPosition++;
             }
-
             public Document GetDoc()
             {
                 return currentDoc;
