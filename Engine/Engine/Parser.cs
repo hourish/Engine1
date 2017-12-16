@@ -12,6 +12,7 @@ namespace Engine
     {
         class Parser
         {
+            private static readonly Regex CompiledRegex = new Regex(@"[^0-9a-zA-Z. %]+", RegexOptions.Compiled);
             Indexer indexer = new Indexer();
             private HashSet<string> stopWords = new HashSet<string>();
             Document currentDoc;
@@ -44,7 +45,6 @@ namespace Engine
                 }
                 currentDoc = new Document(DOCNO);//because str started after <DOCNO>
                 char[] delimeters = { ' ', '\n', '\r', '-', ']', ')', '}', '\\', '*', '"', '\'', '|' };
-                //char[] delimeters = { ' ', '\n', '\r', '-' };
                 string[] words = str.Split(delimeters);
                 int startOfText = 0;
                 for (int i = 4; i < words.Length; i++)//loop for the documnet's date the to find the begining of the text. start after the DOCNO
@@ -332,7 +332,6 @@ namespace Engine
                                 continue;
                             }
                         }
-                        //if the number is part of a date: int and than month or int with th suffix th
                     }// if first char is number
                     else if (Char.IsLetter(words[i][0]))
                     {
@@ -534,19 +533,6 @@ namespace Engine
                                 AddTerm(currentWord);
                             }
                         }
-                        /* else
-                         {
-                             if (words[i].Length > 1)
-                             {
-                                 if (words[i][words[i].Length - 2].Equals('\'') && words[i][words[i].Length - 1].Equals('s')) //if word ends with 's suffix
-                                 {
-                                     words[i] = words[i].Substring(0, words[i].IndexOf("'s"));
-                                     if (words[i].Equals(""))//cases like only 's
-                                         continue;
-                                 }
-                             }
-                             AddTerm(currentDoc, words[i]);
-                         }*/
                     }
                     else if (words[i][0].Equals('$'))//dollar case
                     {
@@ -561,16 +547,10 @@ namespace Engine
                             AddTerm(d + " dollars");
                         }
                     }
-                    /*  else
-                      {
-                          if(!temp.Contains(words[i]))
-                              temp.Add(words[i]);
-                       //   AddTerm(currentDoc, words[i]);
-                      }*/
                 }//second for
-           // Console.WriteLine("finish parse");
             return terms;
-            }          
+            }
+            
             /// <summary>
             /// check if currentWord is legal: not conatains letters and number together or not contain nothing to them
             /// </summary>
@@ -599,6 +579,7 @@ namespace Engine
                     res = true;
                 return res;
             }
+
             /// <summary>
             /// convert integers that present day, month and year to string of date according to the rules
             /// </summary>
@@ -630,17 +611,20 @@ namespace Engine
                 }
                 return str;
             }
+
             /// <summary>
             /// add new term to the collection and updating the term and document's details accordingly
             /// </summary>
+            /// <param name="currentDoc"></param>
             /// <param name="termName"></param>
+            /// <param name="position"></param> the position of the term in the current document
             private void AddTerm(string termName)
             {
                 if (signs.Contains(termName[termName.Length - 1]))
                 {
                     termName = termName.Substring(0, termName.Length - 1); //remove unnecessary chars
                 }
-                if (termName == "" || (stopWords.Contains(termName) && Char.IsLower(termName[0]))) // if empty line or stopWord
+                if (termName == "" || stopWords.Contains(termName)) // if empty line or stopWord
                     return;
                 Term t;
                 if (terms.ContainsKey(termName))
@@ -653,6 +637,11 @@ namespace Engine
                 t.UpdateDetails(currentDoc, this.documentCurrentPosition);
                 this.documentCurrentPosition++;
             }
+      
+            /// <summary>
+            /// return the current document
+            /// </summary>
+            /// <returns></returns>
             public Document GetDoc()
             {
                 return currentDoc;

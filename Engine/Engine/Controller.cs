@@ -13,11 +13,15 @@ namespace Engine
     class Controller
     {
         Indexer indexer = new Indexer();
-        
+        /// <summary>
+        /// run the engine, control all the classes
+        /// </summary>
+        /// <param name="path"></param>
         public void Engine(string path)
         {
             ReadFile rf = new ReadFile(path);
             Parser parser = new Parser(rf.ReadStopWords(path + "\\stop_words.txt"));
+            Dictionary<string, Document> DocDictionary = new Dictionary<string, Document>();
             int filesAmount = rf.FilesAmount();
             Document currentDoc = null;
             string tempPath = @"./temp Posting Files";
@@ -36,8 +40,8 @@ namespace Engine
                 while (matchTEXT.Success)
                 {
                     Term[] terms = parser.Parse(matchTEXT.Groups[1].Value).Values.ToArray();
-                     indexer.PrepareToPosting(terms, currentDoc = parser.GetDoc());
                      int max = -1;
+                     indexer.PrepareToPosting(terms, currentDoc = parser.GetDoc());
                      for (int j = 0; j < terms.Length; j++)
                      {
                          int currentTF = terms[j].GetTF(currentDoc);
@@ -48,8 +52,7 @@ namespace Engine
                      }
                     currentDoc.SetMaxTF(max);
                     currentDoc.SetLength(terms.Length);
-                  //  Console.WriteLine("finish SetMaxTF and SetLength");
-                    indexer.AddDocToDictionary(currentDoc);
+                    DocDictionary.Add(currentDoc.GetName(), currentDoc);
                     matchTEXT = matchTEXT.NextMatch();
                 }          
                 count++;
@@ -108,24 +111,24 @@ namespace Engine
        /// <param name="dest"></param>
        public void Merge(string source, string dest)
        {
-            string[] temporarlyPostingFolder = Directory.GetFiles(source, "*.*", SearchOption.AllDirectories);
-            int index = 0;//if even number of files
-            // if there id odd number of files in the source it move one file to the dest folder
-            if (temporarlyPostingFolder.Length % 2 != 0)
-            {
-                string fileName = Path.GetFileName(temporarlyPostingFolder[0]);//take a file
-                string destFile = Path.Combine(dest, fileName);//find new path to destination file
-                File.Copy(temporarlyPostingFolder[0], destFile, true);//copy the file to the new path
-                File.Delete(temporarlyPostingFolder[0]);//delete the file from the old path
-                index = 1;
-                indexer.SetPostingNumber(1);
+               string[] temporarlyPostingFolder = Directory.GetFiles(source, "*.*", SearchOption.AllDirectories);
+               int index = 0;//if even number of files
+               // if there id odd number of files in the source it move one file to the dest folder
+               if (temporarlyPostingFolder.Length % 2 != 0)
+               {
+                   string fileName = Path.GetFileName(temporarlyPostingFolder[0]);//take a file
+                   string destFile = Path.Combine(dest, fileName);//find new path to destination file
+                   File.Copy(temporarlyPostingFolder[0], destFile, true);//copy the file to the new path
+                   File.Delete(temporarlyPostingFolder[0]);//delete the file from the old path
+                   index = 1;
+                   indexer.SetPostingNumber(1);
             }
             for (int i = index; i < temporarlyPostingFolder.Length; i = i + 2)
-            {
-                indexer.Merge(temporarlyPostingFolder[i], temporarlyPostingFolder[i+1], dest);//merge two file to destination direcory
-                File.Delete(temporarlyPostingFolder[i]);
-                File.Delete(temporarlyPostingFolder[i+1]);
-            }
+               {
+                   indexer.Merge(temporarlyPostingFolder[i], temporarlyPostingFolder[i+1], dest);//merge two file to destination direcory
+                   File.Delete(temporarlyPostingFolder[i]);
+                   File.Delete(temporarlyPostingFolder[i+1]);
+               }
        }
     }
 }
