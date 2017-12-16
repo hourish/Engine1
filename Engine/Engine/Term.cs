@@ -22,7 +22,7 @@ namespace Engine
             // string res = name+"|"+currentDoc.GetName() + ':';
             string res = currentDoc.GetName() + ':';
             if (details.ContainsKey(currentDoc))
-                {
+            {
                 ArrayList positions = details[currentDoc];//all the positions in the document
                 for (int j = 0; j < positions.Count; j++)
                 {
@@ -31,6 +31,7 @@ namespace Engine
                     else
                         res += positions[j] + "?";
                 }
+                res += "_" + positions.Count;//tf
             }
             else
                 res = "";
@@ -72,10 +73,6 @@ namespace Engine
             public int GetTF(Document currentDoc)
             {
                 return details[currentDoc].Count;
-            }
-            public int GetDF()
-            {
-                return details.Count;
             }
             public List<Document> GetDocsList()
             {

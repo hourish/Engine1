@@ -85,108 +85,235 @@ namespace Engine
         {
             string line1 = null;
             string line2 = null;
-            SortedDictionary<string, int> tempDic = new SortedDictionary<string, int>();//holds 3 of each posting file (1 or 2)
+            SortedDictionary<string, StringBuilder> tempDic = new SortedDictionary<string, StringBuilder>();//holds 3 of each posting file (1 or 2)
             StreamReader file1 = new StreamReader(pathFile1);
             StreamReader file2 = new StreamReader(pathFile2);
             string pathPosting = pathMerge + "/posting" + postingNumber ;
             StreamWriter posting = new StreamWriter(pathPosting);
             postingNumber++;
-            for (int i = 0; i < 3; i++)
+            StringBuilder sb = new StringBuilder();
+            string last1 = "";
+            string last2 = "";
+            bool shirshur = false;
+            if ((!file1.EndOfStream))
             {
-                if ((line1 = file1.ReadLine()) != null)
-                    tempDic.Add(line1, 1);
-            }
-            for (int i = 0; i < 3; i++)
-            {
-                if ((line2 = file2.ReadLine()) != null)
-                {
-                    if (!tempDic.ContainsKey(line2))
-                        tempDic.Add(line2, 2);
-                    else
+                    if ((line1 = file1.ReadLine()) != null)
                     {
-                        i--;
-                        Console.WriteLine("before while");
-                        Console.WriteLine(pathFile1);
-                        Console.WriteLine(pathFile2);
-                    }
-                }
-            }
-            while ((!file1.EndOfStream) || (!file2.EndOfStream))// going throgh the files and stop when he got to the end of them 
-            {
-                int count = 1;// checking how many lines we write to the file              
-                StringBuilder sb = new StringBuilder(tempDic.ElementAt(0).Key);//the first sorted term
-                if (1 < tempDic.Count)// avoid out of bound
-                {
-
-                    // check if the smallest line and the second smallest line are from the same temprarly Postingfile
-                    if (tempDic.ElementAt(0).Value == tempDic.ElementAt(1).Value)
-                    {
-                        sb.Append("\n" + tempDic.ElementAt(1).Key);
-                        count++;// how many lines we write to the file
-                        if (tempDic.Count > 2)
+                        sb.Clear();
+                        int index = 0;
+                        while (!line1[index].Equals('\0'))
                         {
-                            if (tempDic.ElementAt(1).Value == tempDic.ElementAt(2).Value)
+                            if (!line1[index].Equals('|'))
                             {
-                                sb.Append("\n" + tempDic.ElementAt(2).Key);
-                                count++;
+                                sb.Append(line1[index]);
+                                index++;
                             }
-                        }
-                    }
-                }
-                posting.Write(sb.ToString());
-                posting.Flush();
-                //insert new lines to the dic instead the ones we write to the posting
-                if (tempDic.ElementAt(0).Value == 1) // check if we insert elements from temp posting 1 
-                {
-                    for (int i = 0; i < count; i++)
-                    {
-                        tempDic.Remove(tempDic.ElementAt(0).Key);
-                        if ((line1 = file1.ReadLine()) != null)
-                        {
-                            if (!tempDic.ContainsKey(line2))
-                                tempDic.Add(line1, 1);
                             else
-                            {
-                                i--;
-                                Console.WriteLine("while if");
-                                Console.WriteLine(pathFile1);
-                                Console.WriteLine(pathFile2);
-                            }
+                                break;
                         }
-                    }
-                }
-                else//from file 2
-                {
-                    for (int i = 0; i < count; i++) // check if we insert elements from temp posting 2 
-                    {
-                        tempDic.Remove(tempDic.ElementAt(0).Key);
-                        if ((line2 = file2.ReadLine()) != null)
+                        if (!tempDic.ContainsKey(sb.ToString()))
                         {
-                            if (!tempDic.ContainsKey(line2))
-                                tempDic.Add(line2, 2);
-                            else
-                            {
-                                i--;
-                                Console.WriteLine("while else");
-                                Console.WriteLine(pathFile1);
-                                Console.WriteLine(pathFile2);
-                            }
+                            tempDic.Add(sb.ToString(), new StringBuilder(line1));
                         }
-                    }
+                        else
+                        {
+                            tempDic[sb.ToString()].Append(line1.Replace(sb.ToString() + "|", ""));
+                        }
+                         last1 = sb.ToString();
+                    }  
+            }
+            if ((!file2.EndOfStream))
+            {
+                    if ((line2 = file2.ReadLine()) != null)
+                    {
+                        sb.Clear();
+                        int index = 0;
+                        while (!line2[index].Equals('\0'))
+                        {
+                            if (!line2[index].Equals('|'))
+                            {
+                                sb.Append(line2[index]);
+                                index++;
+                            }
+                            else
+                                break;
+                        }
+                        if (!tempDic.ContainsKey(sb.ToString()))
+                        {
+                            tempDic.Add(sb.ToString(), new StringBuilder(line2));
+                        }
+                        else
+                        {
+                            tempDic[sb.ToString()].Append(line2.Replace(sb.ToString() + "|", ""));
+                            shirshur = true;
+                        }
+                        last2 = sb.ToString();
                 }
             }
-            while (tempDic.Count > 0) // tempDic is not empty which means there are still lines to write
+            while ((!file1.EndOfStream) && (!file2.EndOfStream))// going throgh the files and stop when he got to the end of them 
             {
-                posting.WriteLine(tempDic.ElementAt(0).Key);
+               // sb.Clear();
+              //  sb.Append(tempDic.ElementAt(0).Value).Append("\n");
+                posting.Write(tempDic.ElementAt(0).Value + "\n");
                 posting.Flush();
                 tempDic.Remove(tempDic.ElementAt(0).Key);
-            }         
+                if (!shirshur)
+                {
+                    if (String.Compare(last1, last2) < 0)
+                    {
+                        if ((!file1.EndOfStream))
+                        {
+                            if ((line1 = file1.ReadLine()) != null)
+                            {
+                                sb.Clear();
+                                int index = 0;
+                                while (!line1[index].Equals('\0'))
+                                {
+                                    if (!line1[index].Equals('|'))
+                                    {
+                                        sb.Append(line1[index]);
+                                        index++;
+                                    }
+                                    else
+                                        break;
+                                }
+                                if (!tempDic.ContainsKey(sb.ToString()))
+                                {
+                                    tempDic.Add(sb.ToString(), new StringBuilder(line1));
+                                    shirshur = false;
+                                }
+                                else
+                                {
+                                    tempDic[sb.ToString()].Append(line1.Replace(sb.ToString() + "|", ""));
+                                    shirshur = true;
+                                }
+                                last1 = sb.ToString();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if ((!file2.EndOfStream))
+                        {
+                            if ((line2 = file2.ReadLine()) != null)
+                            {
+                                sb.Clear();
+                                int index = 0;
+                                while (!line2[index].Equals('\0'))
+                                {
+                                    if (!line2[index].Equals('|'))
+                                    {
+                                        sb.Append(line2[index]);
+                                        index++;
+                                    }
+                                    else
+                                        break;
+                                }
+                                if (!tempDic.ContainsKey(sb.ToString()))
+                                {
+                                    tempDic.Add(sb.ToString(), new StringBuilder(line2));
+                                    shirshur = false;
+                                }
+                                else
+                                {
+                                    tempDic[sb.ToString()].Append(line2.Replace(sb.ToString() + "|", ""));
+                                    shirshur = true;
+                                }
+                                last2 = sb.ToString();
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    if ((!file1.EndOfStream))
+                    {
+                        if ((line1 = file1.ReadLine()) != null)
+                        {
+                            sb.Clear();
+                            int index = 0;
+                            while (!line1[index].Equals('\0'))
+                            {
+                                if (!line1[index].Equals('|'))
+                                {
+                                    sb.Append(line1[index]);
+                                    index++;
+                                }
+                                else
+                                    break;
+                            }
+                            if (!tempDic.ContainsKey(sb.ToString()))
+                            {
+                                tempDic.Add(sb.ToString(), new StringBuilder(line1));
+                                shirshur = true;
+                            }
+                            else
+                            {
+                                tempDic[sb.ToString()].Append(line1.Replace(sb.ToString() + "|", ""));
+                                shirshur = false;
+                            }
+                            last1 = sb.ToString();
+                        }
+                    }
+                    if ((!file2.EndOfStream))
+                    {
+                        if ((line2 = file2.ReadLine()) != null)
+                        {
+                            sb.Clear();
+                            int index = 0;
+                            while (!line2[index].Equals('\0'))
+                            {
+                                if (!line2[index].Equals('|'))
+                                {
+                                    sb.Append(line2[index]);
+                                    index++;
+                                }
+                                else
+                                    break;
+                            }
+                            if (!tempDic.ContainsKey(sb.ToString()))
+                            {
+                                tempDic.Add(sb.ToString(), new StringBuilder(line2));
+                                shirshur = false;
+                            }
+                            else
+                            {
+                                tempDic[sb.ToString()].Append(line2.Replace(sb.ToString() + "|", ""));
+                                shirshur = true;
+                            }
+                            last2 = sb.ToString();
+                        }
+                    }
+                }
+            }
+            if(!file1.EndOfStream)
+            {
+                while (!file1.EndOfStream)
+                {
+                    if ((line1 = file1.ReadLine()) != null)
+                    {
+                        posting.WriteLine(line1);
+                        posting.Flush();
+                    }
+                }  
+            }
+            else if(!file2.EndOfStream)
+            {
+                while (!file2.EndOfStream)
+                {
+                    if ((line2 = file2.ReadLine()) != null)
+                    {
+                        posting.WriteLine(line1);
+                        posting.Flush();
+                    }
+                }
+            }
+       
             file1.Close();
             file2.Close();
             posting.Close();
         }
                 
-
         public int GetPostingNumber()
         {
             return postingNumber;

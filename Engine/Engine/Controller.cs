@@ -29,7 +29,7 @@ namespace Engine
             long tenPrecent = (size * 9) / 100;
             long numFiles = tenPrecent / avgFilesSize;
             int count = 0;
-          /*  for (int i = 0; i < filesAmount; i++)//going through the files in the dictionery and send each to the parser 
+         /*   for (int i = 0; i < filesAmount; i++)//going through the files in the dictionery and send each to the parser 
             {
                 Match matchTEXT = rf.Seperate(i);// get a sperated files from red file
                 while (matchTEXT.Success)
@@ -58,32 +58,47 @@ namespace Engine
                     indexer.CreateTempPostingFile(tempPath);
                     count = 0;
                 }
-            }//for
+            }//for*/
             if(count > 0)// if we finished the for and there are still terms in the hash
             {
                 indexer.CreateTempPostingFile(tempPath);
-            }*/
+            }
             int finalFolder = Directory.GetFiles(finalPath, "*.*", SearchOption.AllDirectories).Length;
             int temporarlyPostingFolder = Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories).Length;
-            // continue until there is just one file in one of the folders
-            while (temporarlyPostingFolder >= 1 && finalFolder == 0)
+            // continue until there is only two files
+            while (!(temporarlyPostingFolder == 2 && finalFolder == 0) || !(temporarlyPostingFolder == 0 && finalFolder == 2))
             {
                 indexer.SetPostingNumber(0);
                 Merge(tempPath, finalPath);
                 temporarlyPostingFolder = Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories).Length;
                 finalFolder = Directory.GetFiles(finalPath, "*.*", SearchOption.AllDirectories).Length;
-                // if (temporarlyPostingFolder.Length == 1 && !Directory.EnumerateFiles(finalPath).Any())// if the final posting is in the temp directory so it move it to the right directory
-                if (temporarlyPostingFolder == 0 && finalFolder == 1) { //end
+                if (temporarlyPostingFolder == 0 && finalFolder == 2)
+                {
+                    string[] from = Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories);
+                    string fileName = Path.GetFileName(from[0]);//take a file
+                }
+                if(temporarlyPostingFolder == 2 && finalFolder == 0)
+                {
                     break;
                 }
-                else
+                indexer.SetPostingNumber(0);
+                Merge(finalPath, tempPath);
+                temporarlyPostingFolder = Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories).Length;
+                finalFolder = Directory.GetFiles(finalPath, "*.*", SearchOption.AllDirectories).Length;
+
+                if (temporarlyPostingFolder == 0 && finalFolder == 2)
                 {
-                    Merge(finalPath, tempPath);
-                    temporarlyPostingFolder = Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories).Length;
-                    finalFolder = Directory.GetFiles(finalPath, "*.*", SearchOption.AllDirectories).Length;
+                    string[] from = Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories);
+                    string fileName = Path.GetFileName(from[0]);//take a file
+                }
+                if (temporarlyPostingFolder == 2 && finalFolder == 0)
+                {
+                    break;
                 }
             }
+
            Console.WriteLine("the end");
+           Console.ReadLine();
        }//engine
        /// <summary>
        /// take every two files from source dictionery merge and save  the new file in the dest dictionery;
@@ -102,15 +117,14 @@ namespace Engine
                    File.Copy(temporarlyPostingFolder[0], destFile, true);//copy the file to the new path
                    File.Delete(temporarlyPostingFolder[0]);//delete the file from the old path
                    index = 1;
-               }
-               for (int i = index; i < temporarlyPostingFolder.Length; i = i + 2)
+                   indexer.SetPostingNumber(1);
+            }
+            for (int i = index; i < temporarlyPostingFolder.Length; i = i + 2)
                {
                    indexer.Merge(temporarlyPostingFolder[i], temporarlyPostingFolder[i+1], dest);//merge two file to destination direcory
                    File.Delete(temporarlyPostingFolder[i]);
                    File.Delete(temporarlyPostingFolder[i+1]);
                }
-
-
            }
     }
 }
