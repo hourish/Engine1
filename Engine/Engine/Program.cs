@@ -12,11 +12,11 @@ namespace Engine
     {
         static void  Main(string[] args)
         {
-            // string path = @"C:\Users\Shani\Desktop\study\first semester\Ihzur\Engine\corpus\corpus";
-            // Controller control = new Controller();
-            //  control.Engine(path);
+             string path = @"C:\Users\hourish\Downloads\corpus\corpus";
+             Controller control = new Controller();
+             control.Engine(path);
 
-            HashSet<string> hs = new HashSet<string>();
+        /*    HashSet<string> hs = new HashSet<string>();
             string[] from = Directory.GetFiles(@".\finalPosting", "*.*", SearchOption.AllDirectories);
             for(int i = 0; i < from.Length; i++)
             {
@@ -57,10 +57,11 @@ namespace Engine
                         Console.WriteLine(l[j]);
                     }
                 }
+                hs.clear();
 
             }
             Console.WriteLine("end");
-            Console.ReadLine();
+            Console.ReadLine();*/
         }
     }
 }

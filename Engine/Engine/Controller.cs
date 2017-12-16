@@ -13,10 +13,15 @@ namespace Engine
     class Controller
     {
         Indexer indexer = new Indexer();
+        /// <summary>
+        /// run the engine, control all the classes
+        /// </summary>
+        /// <param name="path"></param>
         public void Engine(string path)
         {
             ReadFile rf = new ReadFile(path);
             Parser parser = new Parser(rf.ReadStopWords(path + "\\stop_words.txt"));
+            Dictionary<string, Document> DocDictionary = new Dictionary<string, Document>();
             int filesAmount = rf.FilesAmount();
             Document currentDoc = null;
             string tempPath = @"./temp Posting Files";
@@ -29,14 +34,14 @@ namespace Engine
             long tenPrecent = (size * 9) / 100;
             long numFiles = tenPrecent / avgFilesSize;
             int count = 0;
-         /*   for (int i = 0; i < filesAmount; i++)//going through the files in the dictionery and send each to the parser 
+            for (int i = 0; i < filesAmount; i++)//going through the files in the dictionery and send each to the parser 
             {
                 Match matchTEXT = rf.Seperate(i);// get a sperated files from red file
                 while (matchTEXT.Success)
                 {
                     Term[] terms = parser.Parse(matchTEXT.Groups[1].Value).Values.ToArray();
-                     indexer.PrepareToPosting(terms, currentDoc = parser.GetDoc());
                      int max = -1;
+                     indexer.PrepareToPosting(terms, currentDoc = parser.GetDoc());
                      for (int j = 0; j < terms.Length; j++)
                      {
                          int currentTF = terms[j].GetTF(currentDoc);
@@ -47,8 +52,7 @@ namespace Engine
                      }
                     currentDoc.SetMaxTF(max);
                     currentDoc.SetLength(terms.Length);
-                  //  Console.WriteLine("finish SetMaxTF and SetLength");
-                    indexer.AddDoucToDictionary(currentDoc);
+                    DocDictionary.Add(currentDoc.GetName(), currentDoc);
                     matchTEXT = matchTEXT.NextMatch();
                 }          
                 count++;
@@ -58,7 +62,7 @@ namespace Engine
                     indexer.CreateTempPostingFile(tempPath);
                     count = 0;
                 }
-            }//for*/
+            }//for
             if(count > 0)// if we finished the for and there are still terms in the hash
             {
                 indexer.CreateTempPostingFile(tempPath);
@@ -106,7 +110,7 @@ namespace Engine
        /// <param name="source"></param>
        /// <param name="dest"></param>
        public void Merge(string source, string dest)
-           {
+       {
                string[] temporarlyPostingFolder = Directory.GetFiles(source, "*.*", SearchOption.AllDirectories);
                int index = 0;//if even number of files
                // if there id odd number of files in the source it move one file to the dest folder
@@ -125,7 +129,7 @@ namespace Engine
                    File.Delete(temporarlyPostingFolder[i]);
                    File.Delete(temporarlyPostingFolder[i+1]);
                }
-           }
+       }
     }
 }
 

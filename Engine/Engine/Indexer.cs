@@ -12,12 +12,12 @@ namespace Engine
 {
     class Indexer
     {
-        Dictionary<string, Document> Docdictionary = new Dictionary<string,Document>(); //the dictionary of the corpus
         Dictionary<string, StringBuilder> termsToPosting = new Dictionary<string, StringBuilder>();
-        int postingNumber = 0;
-        int tempPostingFilesCounter;
+        int postingNumber;//inner counter to the posting files during each merge from source file to destination file
+        int tempPostingFilesCounter;//counter to the posting files during the creation of the first posting files
         public Indexer()
         {
+            postingNumber = 0;
             tempPostingFilesCounter = 0;
         }
         /// <summary>
@@ -27,14 +27,8 @@ namespace Engine
         /// <param name="currentDoc"></param>
         public void PrepareToPosting(Term[] terms, Document currentDoc)
         {
-          //  Console.WriteLine("start PrepareToPosting");
-            //string str = "";
-
-            // Docdictionary.Add(currentDoc.GetName(), currentDoc);
             for (int i = 0; i < terms.Length; i++)
             {
-                //string temp = terms[i].GetName() + "|";
-
                 if (termsToPosting.ContainsKey(terms[i].GetName()))
                 {
                     termsToPosting[terms[i].GetName()].Append(terms[i].StringToPosting(currentDoc));
@@ -42,11 +36,8 @@ namespace Engine
                 else
                 {
                     termsToPosting.Add(terms[i].GetName(), new StringBuilder(terms[i].StringToPosting(currentDoc)));
-                }
-                
-
+                }              
             }
-           // Console.WriteLine("finish PrepareToPosting");
         }
         /// <summary>
         /// sort the list of terms, merge the difrrent parts of the term and write them on the temporarly posting file
@@ -54,33 +45,25 @@ namespace Engine
         /// <param name="path"> the where to write the temporarly posting file</param>
         public void CreateTempPostingFile(string path)
         {
-            Console.WriteLine("CreateTempPostingFile");
             List<string> tempTermList = termsToPosting.Keys.ToList();
             StringBuilder str =new StringBuilder("");
-            //..termsToPosting=termsToPosting.OrderBy(termsToPosting => termsToPosting.Key);
-          /*  for (int i = 0; i < termsToPosting.Count; i++)
-            {
-                tempTermList.Add(termsToPosting.ElementAt(i).Key);
-            }*/
-            Console.WriteLine("CreateTempPostingFile before sort");
             tempTermList.Sort();
-            Console.WriteLine("CreateTempPostingFile after sort");
-            //for (int i= termsToPosting.Count-1; i>=0;i--)
             for (int i = 0; i <tempTermList.Count; i++)
             {
-                //str.Append(termsToPosting.ElementAt(i).Key + "|" + termsToPosting.ElementAt(i).Value.ToString() + "\n");
                 str.Append(tempTermList[i]).Append("|" + termsToPosting[tempTermList[i]].ToString() + "\n");
-                //Console.WriteLine(str.ToString());
             }
-            Console.WriteLine("after for");
             termsToPosting.Clear();
             string newPath = path + "\\TempPostingFileNumber_" + tempPostingFilesCounter;
             File.WriteAllText(newPath, str.ToString());
-        //    tempTermList.Clear();
             tempPostingFilesCounter++;
-
         }
 
+        /// <summary>
+        /// merge two files, from pathFile1 and pathFile2, to one file in pathMerge
+        /// </summary>
+        /// <param name="pathFile1"></param>  path of file1
+        /// <param name="pathFile2"></param> path of file2
+        /// <param name="pathMerge"></param> path of destination merged file
         public void Merge(string pathFile1, string pathFile2, string pathMerge)
         {
             string line1 = null;
@@ -152,8 +135,6 @@ namespace Engine
             }
             while ((!file1.EndOfStream) && (!file2.EndOfStream))// going throgh the files and stop when he got to the end of them 
             {
-               // sb.Clear();
-              //  sb.Append(tempDic.ElementAt(0).Value).Append("\n");
                 posting.Write(tempDic.ElementAt(0).Value + "\n");
                 posting.Flush();
                 tempDic.Remove(tempDic.ElementAt(0).Key);
@@ -307,48 +288,15 @@ namespace Engine
                         posting.Flush();
                     }
                 }
-            }
-       
+            }       
             file1.Close();
             file2.Close();
             posting.Close();
-        }
-                
-        public int GetPostingNumber()
-        {
-            return postingNumber;
         }
 
         public void SetPostingNumber(int num)
         {
             postingNumber = num;
-        }
-
-        public void AddDoucToDictionary(Document currentDoc)
-        {
-            Docdictionary.Add(currentDoc.GetName(), currentDoc);
-        }           
+        }        
     }
 }
-
-/*
-         string toWrite = "";
-        private static int tempPostingFilesCounter = 0;
-
-        public void PrepareToPosting(Term[] terms, Document currentDoc)
-        {
-            Array.Sort<Term>((Engine.Term[])terms);
-            for (int i = 0; i < terms.Length; i++)//all terms
-            {
-                toWrite += terms[i].StringToPosting();
-            }
-        }
-
-        public void CreateTempPostingFile(string path)
-        {
-            string newPath = path + "\\TempPostingFileNumber_" + tempPostingFilesCounter;
-            File.WriteAllText(newPath, toWrite);
-            tempPostingFilesCounter++;
-            toWrite = "";
-        }
-*/
