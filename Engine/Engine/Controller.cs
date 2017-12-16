@@ -34,6 +34,7 @@ namespace Engine
             long tenPrecent = (size * 9) / 100;
             long numFiles = tenPrecent / avgFilesSize;
             int count = 0;
+            numFiles = 20;
             for (int i = 0; i < filesAmount; i++)//going through the files in the dictionery and send each to the parser 
             {
                 Match matchTEXT = rf.Seperate(i);// get a sperated files from red file
@@ -56,7 +57,6 @@ namespace Engine
                     matchTEXT = matchTEXT.NextMatch();
                 }          
                 count++;
-              //  Console.WriteLine("count " + count + " numFiles " + numFiles);
                 if (count == numFiles)
                 {
                     indexer.CreateTempPostingFile(tempPath);
@@ -78,25 +78,18 @@ namespace Engine
                 finalFolder = Directory.GetFiles(finalPath, "*.*", SearchOption.AllDirectories).Length;
                 if (temporarlyPostingFolder == 0 && finalFolder == 2)
                 {
-                    string[] from = Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories);
-                    string fileName = Path.GetFileName(from[0]);//take a file
-                }
-                if(temporarlyPostingFolder == 2 && finalFolder == 0)
-                {
+                    string[] filesAtFinalPath = Directory.GetFiles(finalPath, "*.*", SearchOption.AllDirectories);
+                    indexer.FinalMerge(filesAtFinalPath[0], filesAtFinalPath[1], finalPath);
                     break;
                 }
                 indexer.SetPostingNumber(0);
                 Merge(finalPath, tempPath);
                 temporarlyPostingFolder = Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories).Length;
                 finalFolder = Directory.GetFiles(finalPath, "*.*", SearchOption.AllDirectories).Length;
-
-                if (temporarlyPostingFolder == 0 && finalFolder == 2)
-                {
-                    string[] from = Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories);
-                    string fileName = Path.GetFileName(from[0]);//take a file
-                }
                 if (temporarlyPostingFolder == 2 && finalFolder == 0)
                 {
+                    string[] filesAtTemporarlyPostingFolder = Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories);
+                    indexer.FinalMerge(filesAtTemporarlyPostingFolder[0], filesAtTemporarlyPostingFolder[1], finalPath);
                     break;
                 }
             }

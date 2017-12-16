@@ -109,7 +109,7 @@ namespace Engine
                 }//first for
                 for (int i = startOfText; i < words.Length; i++) //loop for the text from <Text> 
                 {
-                    if (words[i].Equals("") || stopWords.Contains(words[i]) || words[i][0].Equals('<') || words[i][0].Equals('&') || !IsLegal(words[i])) // if stopWord or illegal word
+                    if (words[i].Equals("") || stopWords.Contains(words[i]) || words[i][0].Equals('<') || words[i][0].Equals('&') || !IsLegal(words[i]) || words[i].Contains('�')) // if stopWord or illegal word
                         continue;
                     int tmp = 0;
                     while (signs.Contains(words[i][tmp]))
@@ -626,6 +626,10 @@ namespace Engine
                 }
                 if (termName == "" || stopWords.Contains(termName)) // if empty line or stopWord
                     return;
+                if(Char.IsUpper(termName[0]))
+                {
+                    termName = termName.ToLower();
+                }
                 Term t;
                 if (terms.ContainsKey(termName))
                     t = terms[termName];

@@ -12,7 +12,7 @@ namespace Engine
     {
         static void  Main(string[] args)
         {
-             string path = @"C:\Users\hourish\Downloads\corpus\corpus";
+             string path = @"C:\Users\Shani\Desktop\study\first semester\Ihzur\Engine\corpus\corpus";
              Controller control = new Controller();
              control.Engine(path);
 
