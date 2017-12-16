@@ -34,7 +34,8 @@ namespace Engine
             /// <param name="str"></param> a text to parse
             public Dictionary<string, Term> Parse(string str)
             {
-                terms.Clear();
+           // Console.WriteLine("start parse");
+            terms.Clear();
                 //  str = Regex.Replace(str,  @"[^0-9a-zA-Z. %-$]+", ""); //remove unnecessary chars
                 int startOfDONCON = 0;
                 while (str[startOfDONCON].Equals(' '))
@@ -156,6 +157,7 @@ namespace Engine
                     {
                         int index = i;
                         bool end = false;
+                        bool isDate = true;
                         if (i + 1 < words.Length)
                         {
                             if (words[index + 1].Equals(""))
@@ -170,15 +172,7 @@ namespace Engine
                                         {
                                             if (words[index + 1].Equals(""))
                                             {
-                                                i = i + 2;
-                                                AddTerm(currentDoc, currentWord);
-                                                while (words[i + 1].Equals(""))
-                                                {
-                                                    i++;
-                                                    if (i + 1 == words.Length)
-                                                        break;
-                                                }
-                                                continue;
+                                                isDate = false;
                                             }
                                         }
                                         else
@@ -189,7 +183,7 @@ namespace Engine
                                     end = true;
                             }
                             //month case
-                            if (!end)
+                            if (!end && isDate)
                             {
                                 int day = 0;
                                 if (signs.Contains(words[i][words[i].Length - 1]))
@@ -578,6 +572,7 @@ namespace Engine
                        //   AddTerm(currentDoc, words[i]);
                       }*/
                 }//second for
+           // Console.WriteLine("finish parse");
             return terms;
             }
             

@@ -29,28 +29,30 @@ namespace Engine
             long tenPrecent = (size * 9) / 100;
             long numFiles = tenPrecent / avgFilesSize;
             int count = 0;
-            for (int i = 0; i < filesAmount; i++)//going through the files in the dictionery and send each to the parser 
+          /*  for (int i = 0; i < filesAmount; i++)//going through the files in the dictionery and send each to the parser 
             {
                 Match matchTEXT = rf.Seperate(i);// get a sperated files from red file
                 while (matchTEXT.Success)
                 {
                     Term[] terms = parser.Parse(matchTEXT.Groups[1].Value).Values.ToArray();
-                    indexer.PrepareToPosting(terms, currentDoc = parser.GetDoc());
-                    int max = -1;
-                    for (int j = 0; j < terms.Length; j++)
-                    {
-                        int currentTF = terms[j].GetTF(currentDoc);
-                        if (currentTF > max)
-                        {
-                            max = currentTF;
-                        }
-                    }
+                     indexer.PrepareToPosting(terms, currentDoc = parser.GetDoc());
+                     int max = -1;
+                     for (int j = 0; j < terms.Length; j++)
+                     {
+                         int currentTF = terms[j].GetTF(currentDoc);
+                         if (currentTF > max)
+                         {
+                             max = currentTF;
+                         }
+                     }
                     currentDoc.SetMaxTF(max);
                     currentDoc.SetLength(terms.Length);
+                  //  Console.WriteLine("finish SetMaxTF and SetLength");
                     indexer.AddDoucToDictionary(currentDoc);
                     matchTEXT = matchTEXT.NextMatch();
                 }          
                 count++;
+              //  Console.WriteLine("count " + count + " numFiles " + numFiles);
                 if (count == numFiles)
                 {
                     indexer.CreateTempPostingFile(tempPath);
@@ -60,7 +62,7 @@ namespace Engine
             if(count > 0)// if we finished the for and there are still terms in the hash
             {
                 indexer.CreateTempPostingFile(tempPath);
-            }
+            }*/
             int finalFolder = Directory.GetFiles(finalPath, "*.*", SearchOption.AllDirectories).Length;
             int temporarlyPostingFolder = Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories).Length;
             // continue until there is just one file in one of the folders

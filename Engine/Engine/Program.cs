@@ -21,7 +21,7 @@ namespace Engine
             // long i = new DirectoryInfo(@"D:\EngineFiles\corpus\corpus").GetFiles("*.*", SearchOption.AllDirectories).Sum(file => file.Length);
             // double precent=(i*10)/100;
           
-          string path = @"C:\Users\Shani\Desktop\study\first semester\Ihzur\Engine\corpus\corpus";
+          string path = @"C:\Users\hourish\Downloads\corpus\corpus";
 
            // string path = @"D:\EngineFiles\corpus\corpus";
             Controller control = new Controller();
