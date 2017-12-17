@@ -13,11 +13,15 @@ namespace Engine
     class Controller
     {
         Indexer indexer = new Indexer();
+        /// <summary>
+        /// run the engine, control all the classes
+        /// </summary>
+        /// <param name="path"></param>
         public void Engine(string path)
         {
-            
             ReadFile rf = new ReadFile(path);
             Parser parser = new Parser(rf.ReadStopWords(path + "\\stop_words.txt"));
+            Dictionary<string, Document> DocDictionary = new Dictionary<string, Document>();
             int filesAmount = rf.FilesAmount();
             Document currentDoc = null;
             string tempPath = @"./temp Posting Files";
@@ -30,67 +34,68 @@ namespace Engine
             long tenPrecent = (size * 9) / 100;
             long numFiles = tenPrecent / avgFilesSize;
             int count = 0;
-            /*
-             for (int i = 0; i < filesAmount; i++)//going through the files in the dictionery and send each to the parser 
-             {
-                 Match matchTEXT = rf.Seperate(i);// get a sperated files from red file
-                 while (matchTEXT.Success)
-                 {
-                     Term[] terms = parser.Parse(matchTEXT.Groups[1].Value).Values.ToArray();
-                      indexer.PrepareToPosting(terms, currentDoc = parser.GetDoc());
-                      int max = -1;
-                      for (int j = 0; j < terms.Length; j++)
-                      {
-                          int currentTF = terms[j].GetTF(currentDoc);
-                          if (currentTF > max)
-                          {
-                              max = currentTF;
-                          }
-                      }
-                     currentDoc.SetMaxTF(max);
-                     currentDoc.SetLength(terms.Length);
-                   //  Console.WriteLine("finish SetMaxTF and SetLength");
-                     indexer.AddDoucToDictionary(currentDoc);
-                     matchTEXT = matchTEXT.NextMatch();
-                 }          
-                 count++;
-               //  Console.WriteLine("count " + count + " numFiles " + numFiles);
-                 if (count == numFiles)
-                 {
-                     indexer.CreateTempPostingFile(tempPath);
-                     count = 0;
-                 }
-             }//for
-             if(count > 0)// if we finished the for and there are still terms in the hash
-             {
-                 indexer.CreateTempPostingFile(tempPath);
-             }
-             int finalFolder = Directory.GetFiles(finalPath, "*.*", SearchOption.AllDirectories).Length;
-             int temporarlyPostingFolder = Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories).Length;
-             // continue until there is just one file in one of the folders
-             while (temporarlyPostingFolder >= 1 && finalFolder == 0)
-             {
-                 indexer.SetPostingNumber(0);
-                 Merge(tempPath, finalPath);
-                 temporarlyPostingFolder = Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories).Length;
-                 finalFolder = Directory.GetFiles(finalPath, "*.*", SearchOption.AllDirectories).Length;
-                 // if (temporarlyPostingFolder.Length == 1 && !Directory.EnumerateFiles(finalPath).Any())// if the final posting is in the temp directory so it move it to the right directory
-                 if (temporarlyPostingFolder == 0 && finalFolder == 2) { //end
-                     break;
-                 }
-                 else
-                 {
-                     Merge(finalPath, tempPath);
-                     temporarlyPostingFolder = Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories).Length;
-                     finalFolder = Directory.GetFiles(finalPath, "*.*", SearchOption.AllDirectories).Length;
-                 }
-             }
-             */
-           //PrepTo("./temp Posting Files/posting0", "./finalPosting/posting0");
-           // PrepTo("./temp Posting Files/posting1", "./finalPosting/posting1");
-            indexer.FinalMerge("./temp Posting Files/posting0", "./temp Posting Files/posting1","./finalPosting");
+            numFiles = 20;
+            for (int i = 0; i < filesAmount; i++)//going through the files in the dictionery and send each to the parser 
+            {
+                Match matchTEXT = rf.Seperate(i);// get a sperated files from red file
+                while (matchTEXT.Success)
+                {
+                    Term[] terms = parser.Parse(matchTEXT.Groups[1].Value).Values.ToArray();
+                     int max = -1;
+                     indexer.PrepareToPosting(terms, currentDoc = parser.GetDoc());
+                     for (int j = 0; j < terms.Length; j++)
+                     {
+                         int currentTF = terms[j].GetTF(currentDoc);
+                         if (currentTF > max)
+                         {
+                             max = currentTF;
+                         }
+                     }
+                    currentDoc.SetMaxTF(max);
+                    currentDoc.SetLength(terms.Length);
+                    DocDictionary.Add(currentDoc.GetName(), currentDoc);
+                    matchTEXT = matchTEXT.NextMatch();
+                }          
+                count++;
+                if (count == numFiles)
+                {
+                    indexer.CreateTempPostingFile(tempPath);
+                    count = 0;
+                }
+            }//for
+            if(count > 0)// if we finished the for and there are still terms in the hash
+            {
+                indexer.CreateTempPostingFile(tempPath);
+            }
+            int finalFolder = Directory.GetFiles(finalPath, "*.*", SearchOption.AllDirectories).Length;
+            int temporarlyPostingFolder = Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories).Length;
+            // continue until there is only two files
+            while (!(temporarlyPostingFolder == 2 && finalFolder == 0) || !(temporarlyPostingFolder == 0 && finalFolder == 2))
+            {
+                indexer.SetPostingNumber(0);
+                Merge(tempPath, finalPath);
+                temporarlyPostingFolder = Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories).Length;
+                finalFolder = Directory.GetFiles(finalPath, "*.*", SearchOption.AllDirectories).Length;
+                if (temporarlyPostingFolder == 0 && finalFolder == 2)
+                {
+                    string[] filesAtFinalPath = Directory.GetFiles(finalPath, "*.*", SearchOption.AllDirectories);
+                    indexer.FinalMerge(filesAtFinalPath[0], filesAtFinalPath[1], finalPath);
+                    break;
+                }
+                indexer.SetPostingNumber(0);
+                Merge(finalPath, tempPath);
+                temporarlyPostingFolder = Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories).Length;
+                finalFolder = Directory.GetFiles(finalPath, "*.*", SearchOption.AllDirectories).Length;
+                if (temporarlyPostingFolder == 2 && finalFolder == 0)
+                {
+                    string[] filesAtTemporarlyPostingFolder = Directory.GetFiles(tempPath, "*.*", SearchOption.AllDirectories);
+                    indexer.FinalMerge(filesAtTemporarlyPostingFolder[0], filesAtTemporarlyPostingFolder[1], finalPath);
+                    break;
+                }
+            }
 
            Console.WriteLine("the end");
+           Console.ReadLine();
        }//engine
        /// <summary>
        /// take every two files from source dictionery merge and save  the new file in the dest dictionery;
@@ -98,7 +103,7 @@ namespace Engine
        /// <param name="source"></param>
        /// <param name="dest"></param>
        public void Merge(string source, string dest)
-           {
+       {
                string[] temporarlyPostingFolder = Directory.GetFiles(source, "*.*", SearchOption.AllDirectories);
                int index = 0;//if even number of files
                // if there id odd number of files in the source it move one file to the dest folder
@@ -109,31 +114,15 @@ namespace Engine
                    File.Copy(temporarlyPostingFolder[0], destFile, true);//copy the file to the new path
                    File.Delete(temporarlyPostingFolder[0]);//delete the file from the old path
                    index = 1;
-               }
-               for (int i = index; i < temporarlyPostingFolder.Length; i = i + 2)
+                   indexer.SetPostingNumber(1);
+            }
+            for (int i = index; i < temporarlyPostingFolder.Length; i = i + 2)
                {
                    indexer.Merge(temporarlyPostingFolder[i], temporarlyPostingFolder[i+1], dest);//merge two file to destination direcory
                    File.Delete(temporarlyPostingFolder[i]);
                    File.Delete(temporarlyPostingFolder[i+1]);
                }
-
-
-           }
-
-        public void PrepTo(string path, string path2)
-        {
-            string line ;
-            StreamReader file1 = new StreamReader(path);
-            StreamWriter final = new StreamWriter(path2);
-            while((line = file1.ReadLine())!=null)
-            {
-                string line1 = line + "=5";
-                final.WriteLine(line1);
-                final.Flush();
-
-            }
-            file1.Close();
-        }
+       }
     }
 }
 

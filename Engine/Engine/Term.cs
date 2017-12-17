@@ -7,7 +7,7 @@ using System.Collections;
 
 namespace Engine
     {
-        class Term : IComparable<Term>
+        class Term
         {
             string name;
             Dictionary<Document, ArrayList> details; //df is the dictionary's length. tf is the arrayList's length.        
@@ -19,25 +19,23 @@ namespace Engine
 
             public string StringToPosting(Document currentDoc)
             {
-            // string res = name+"|"+currentDoc.GetName() + ':';
-            string res = currentDoc.GetName() + ':';
-            if (details.ContainsKey(currentDoc))
+                string res = currentDoc.GetName() + ':';
+                if (details.ContainsKey(currentDoc))
                 {
-                ArrayList positions = details[currentDoc];//all the positions in the document
-                for (int j = 0; j < positions.Count; j++)
-                {
-                    if (j != positions.Count - 1)
-                        res += positions[j] + ",";
-                    else
-                        res += positions[j] + "?";
+                    ArrayList positions = details[currentDoc];//all the positions in the document
+                    for (int j = 0; j < positions.Count; j++)
+                    {
+                        if (j != positions.Count - 1)
+                            res += positions[j] + ",";
+                        else
+                            res += positions[j] + "?";
+                    }
+                    res += "_" + positions.Count + "=" + positions.Count; ;//tf
                 }
-                res = res + "_" + positions.Count+"_";
-                res = res + "=" + positions.Count;
+                else
+                    res = "";
+                return res;
             }
-            else
-                res = "";
-            return res;
-        }
 
             /// <summary>
             /// update the details dictionary of a term.
@@ -61,6 +59,7 @@ namespace Engine
             {
                 return name.GetHashCode();
             }
+          
             /// <summary>
             /// compare to terms according to there name 
             /// </summary>
@@ -71,25 +70,21 @@ namespace Engine
             {
                 return name.Equals(((Term)obj).name);
             }
+
             public int GetTF(Document currentDoc)
             {
                 return details[currentDoc].Count;
             }
-            public int GetDF()
-            {
-                return details.Count;
-            }
+
             public List<Document> GetDocsList()
             {
                 return details.Keys.ToList();
             }
+
             public string GetName()
             {
                 return name;
             }
-            public int CompareTo(Term t)
-            {
-                return (name.CompareTo(t.GetName()));
-            }
+
         }
     }       
