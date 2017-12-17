@@ -359,25 +359,12 @@ namespace Engine
         /// <param name="finalPath"></param>
         public void FinalMerge(string pathFile1, string pathFile2, string finalPath)
         {
-
-
-            string line1 = null;
-            string line2 = null;
-            List<string> read1 = new List<string>();
-            List<string> read2 = new List<string>();
-
-            StringBuilder sb = new StringBuilder();
             StreamReader file1 = new StreamReader(pathFile1);
             StreamReader file2 = new StreamReader(pathFile2);
-            String name = "Number posting";
-            string pathPosting = finalPath + "/Numbers posting";
-            SortedDictionary<string, StringBuilder> tempDic = new SortedDictionary<string, StringBuilder>();//key= term value= name of the file, position, number of files
-
+            string pathPosting = finalPath + "/Numbers posting";//default
             StreamWriter final_posting = new StreamWriter(pathPosting);
-            StringBuilder term1 = new StringBuilder();
-            StringBuilder term2 = new StringBuilder();
             List<char> letters = new List<char> { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' };
-            Posting(final_posting, file1, file2, '0', "Number Posting");
+            Posting(final_posting, file1, file2, '0', "Numbers Posting");
             final_posting.Close();
             for (int i = 0; i < 26; i++)
             {
@@ -387,8 +374,9 @@ namespace Engine
                 final_posting.Close();
             }
 
-            Console.WriteLine("F");
-
+            final_posting.Close();
+            file1.Close();
+            file2.Close();
         }
         /// <summary>
         /// merge between two files as long as the first letter of the words in the documents equals to topic 
@@ -402,7 +390,6 @@ namespace Engine
         {
             string line1;
             string line2;
-            string[] termDetails = new string[4];// termDetails[0]= df, termDetails[1]= name of final postnig file,  termDetails[2]= position in the posting file
             StringBuilder term1 = new StringBuilder();
             StringBuilder term2 = new StringBuilder();
             StringBuilder sb = new StringBuilder();
@@ -439,14 +426,10 @@ namespace Engine
             StringBuilder lineToWrite = new StringBuilder();
             while (!(file1.EndOfStream) && !(file2.EndOfStream) && Condition(term1, topic) && Condition(term2, topic))
             {
-
-
                 lineToWrite.Clear();
                 if (term1.ToString().CompareTo(term2.ToString()) < 0)
                 {
-
-
-                    lineToWrite.Append(line1.Substring(line1.IndexOf("|") + 1));
+                    lineToWrite.Append(line1.Substring(line1.IndexOf("|") + 1));//replace??
                     sb = new StringBuilder(term1.ToString());
                     if ((line1 = file1.ReadLine()) != null)
                     {
@@ -463,7 +446,6 @@ namespace Engine
                                 break;
                         }
                     }
-
                     while (sb.Equals(term1) && !(file1.EndOfStream))
                     {
                         lineToWrite.Append(line1.Substring(line1.IndexOf("|") + 1));
@@ -481,13 +463,9 @@ namespace Engine
                                 else
                                     break;
                             }
-
                         }
-
                     }
-
                 }
-
                 else if (term1.ToString().CompareTo(term2.ToString()) > 0)
                 {
 
@@ -508,8 +486,7 @@ namespace Engine
                                 break;
                         }
                     }
-
-                    while (sb.Equals(term1) && !(file1.EndOfStream))
+                    while (sb.Equals(term2) && !(file2.EndOfStream))
                     {
                         lineToWrite.Append(line2.Substring(line2.IndexOf("|") + 1));
                         if ((line2 = file2.ReadLine()) != null)
@@ -527,15 +504,10 @@ namespace Engine
                                     break;
                             }
                         }
-
-
                     }
-
-
                 }
-                else
+                else// =0 
                 {
-
                     sb = new StringBuilder(term1.ToString());
                     lineToWrite.Append(line2.Substring(line2.IndexOf("|") + 1));
                     lineToWrite.Append(line1.Substring(line1.IndexOf("|")));
@@ -553,7 +525,6 @@ namespace Engine
                             else
                                 break;
                         }
-
                     }
                     if ((line2 = file2.ReadLine()) != null)
                     {
@@ -570,14 +541,11 @@ namespace Engine
                                 break;
                         }
                     }
-
-
                 }
 
-                int filesAmount = 0;// the amount of files the term apper in
+                int filesAmount = 0;// the amount of files the term apper in, df
                 StringBuilder tf = new StringBuilder();
                 int sum = 0;
-
                 for (int i = 0; i < lineToWrite.Length; i++)
                 {
                     if (lineToWrite[i].Equals('_'))
@@ -595,17 +563,16 @@ namespace Engine
                         filesAmount++;
                     }
                 }
+                string[] termDetails = new string[4];// termDetails[0]= df, termDetails[1]= name of final postnig file,  termDetails[2]= position in the posting file
                 termDetails[0] = sum.ToString();
                 termDetails[1] = filesAmount.ToString();
                 termDetails[2] = name;
                 termDetails[3] = final_posting.BaseStream.Length.ToString();
-
-                if (filesAmount > 2)
+                if (sum > 2)
                 {
                     string temp = sb.ToString();
-                    if (sb.ToString().Contains('�'))
-                        continue;
-                    
+                    if (sb.ToString().Contains('�'))//לבדוק
+                        continue;                   
                    if (!finalDic.ContainsKey(sb.ToString()))
                     {
                         final_posting.WriteLine(lineToWrite.ToString() + "/n");
@@ -613,29 +580,22 @@ namespace Engine
                     }
                     else
                         Console.WriteLine(sb.ToString());
-                   
-                }
-
+                 }
             }//while 
-
             if (!(file1.EndOfStream) && !(file2.EndOfStream))
             {
-
                 while (Condition(term1, topic) && !Condition(term2, topic))
                 {
                     int filesAmount = 0;// the amount of files the term apper in
                     StringBuilder tf = new StringBuilder(); ;
-                    int sum = 0;
-                    
+                    int sum = 0;                  
                     for (int i = 0; i < lineToWrite.Length; i++)
                     {
                         if (lineToWrite[i].Equals('_'))
                         {
-
                             i++;
                             while (!lineToWrite[i].Equals('_'))
                             {
-
                                 tf.Append(lineToWrite[i]);
                                 i++;
                             }
@@ -644,24 +604,23 @@ namespace Engine
                             filesAmount++;
                         }
                     }
+                    string[] termDetails = new string[4];// termDetails[0]= df, termDetails[1]= name of final postnig file,  termDetails[2]= position in the posting file
                     termDetails[0] = sum.ToString();
                     termDetails[1] = filesAmount.ToString();
                     termDetails[2] = name;
                     termDetails[3] = final_posting.BaseStream.Length.ToString();
-                    if (filesAmount > 2)
+                    if (sum > 2)
                     {
                         string temp = term1.ToString();
                         if (term1.ToString().Contains('�'))
-                            continue;
-                       
+                            continue;                       
                         if (!finalDic.ContainsKey(term1.ToString()))
                         {
                             final_posting.WriteLine(lineToWrite.ToString() + "/n");
                             finalDic.Add(term1.ToString(), termDetails);
                         }
                         else
-                            Console.WriteLine(sb.ToString());
-                       
+                            Console.WriteLine(sb.ToString());        
                     }
                     if ((line1 = file1.ReadLine()) != null)
                     {
@@ -677,12 +636,9 @@ namespace Engine
                             else
                                 break;
                         }
-
                     }
                     else
                         break;
-
-
                 }
                 while (!Condition(term1, topic) && Condition(term2, topic))
                 {
@@ -707,14 +663,15 @@ namespace Engine
                             filesAmount++;
                         }
                     }
+                    string[] termDetails = new string[4];// termDetails[0]= df, termDetails[1]= name of final postnig file,  termDetails[2]= position in the posting file
                     termDetails[0] = sum.ToString();
                     termDetails[1] = filesAmount.ToString();
                     termDetails[2] = name;
                     termDetails[3] = final_posting.BaseStream.Length.ToString();
-                    if (filesAmount > 2)
+                    if (sum > 2)
                     {
                         string temp = term2.ToString();
-                        if (sb.ToString().Contains('�'))
+                        if (term2.ToString().Contains('�'))
                             continue;
                        
                         if (!finalDic.ContainsKey(term2.ToString()))
@@ -723,8 +680,7 @@ namespace Engine
                             finalDic.Add(term2.ToString(), termDetails);
                         }
                         else
-                            Console.WriteLine(sb.ToString());
-                      
+                            Console.WriteLine(sb.ToString());                    
                     }
                     
                     if ((line2 = file2.ReadLine()) != null)
@@ -744,11 +700,8 @@ namespace Engine
                     }
                     else
                         break;
-
                 }
-
             }
-
             else if (!(file1.EndOfStream))
             {
                 while (!(file1.EndOfStream))
@@ -774,14 +727,15 @@ namespace Engine
                             filesAmount++;
                         }
                     }
+                    string[] termDetails = new string[4];// termDetails[0]= df, termDetails[1]= name of final postnig file,  termDetails[2]= position in the posting file
                     termDetails[0] = sum.ToString();
                     termDetails[1] = filesAmount.ToString();
                     termDetails[2] = name;
                     termDetails[3] = final_posting.BaseStream.Length.ToString();
-                    if (filesAmount > 2)
+                    if (sum > 2)
                     {
                         string temp = term1.ToString();
-                        if (sb.ToString().Contains('�'))
+                        if (term1.ToString().Contains('�'))
                             continue;
                         
                         if (!finalDic.ContainsKey(sb.ToString()))
@@ -810,11 +764,9 @@ namespace Engine
                         }
                     }
                 }
-
             }
             else
             {
-
                 while (!file2.EndOfStream)
                 {
                     int filesAmount = 0;// the amount of files the term apper in
@@ -838,26 +790,24 @@ namespace Engine
                             filesAmount++;
                         }
                     }
+                    string[] termDetails = new string[4];// termDetails[0]= df, termDetails[1]= name of final postnig file,  termDetails[2]= position in the posting file
                     termDetails[0] = sum.ToString();
                     termDetails[1] = filesAmount.ToString();
                     termDetails[2] = name;
                     termDetails[3] = final_posting.BaseStream.Length.ToString();
-                    if (filesAmount > 2)
+                    if (sum > 2)
                     {
                         string temp = term2.ToString();
-                        if (sb.ToString().Contains('�'))
-                            continue;
-                        
+                        if (term2.ToString().Contains('�'))
+                            continue;               
                         if (!finalDic.ContainsKey(term2.ToString()))
                         {
                             final_posting.WriteLine(lineToWrite.ToString() + "/n");
                             finalDic.Add(term2.ToString(), termDetails);
                         }
                         else
-                            Console.WriteLine(sb.ToString());
-                       
-                    }
-                   
+                            Console.WriteLine(sb.ToString());                     
+                    }                  
                     if ((line1 = file1.ReadLine()) != null)
                     {
                         term1.Clear();
@@ -900,13 +850,10 @@ namespace Engine
             return ans;
         }
 
-
-        public SortedDictionary<string, string[]> GetFnialDic()
-            {
-                SortedDictionary<string, string[]> tempFinal = finalDic;
-                finalDic.Clear();
-                return tempFinal;
-            }
+        public SortedDictionary<string, string[]> GetFinalDic()
+        {
+            return finalDic;
+        }
 
         public SortedDictionary<string, int> GetCache()
         {
@@ -914,6 +861,5 @@ namespace Engine
             Cache.Clear();
             return Cache;
         }
-
     }//class
 }//name space

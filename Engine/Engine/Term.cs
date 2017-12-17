@@ -26,10 +26,8 @@ namespace Engine
                     for (int j = 0; j < positions.Count; j++)
                     {
                         if (j != positions.Count - 1)
-                            res += positions[j] + ",";
-                       
+                            res += positions[j] + ",";                     
                     }
-                //res += "_" + positions.Count +"_"+ "=" + positions.Count; ;//tf
                 res += "_" + positions.Count + "_";
                 }
                 else
@@ -76,24 +74,10 @@ namespace Engine
                 return details[currentDoc].Count;
             }
 
-            public List<Document> GetDocsList()
-            {
-                return details.Keys.ToList();
-            }
-
             public string GetName()
             {
                 return name;
             }
-        public int GetPositionCount()
-        {
-            int sum = 0;
-            for (int i=0; i< details.Count();i++)
-            {
-                sum += details.ElementAt(i).Value.Count;
-            }
-            return sum;
-        }
 
         }
     }       

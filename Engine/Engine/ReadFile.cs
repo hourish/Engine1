@@ -16,7 +16,6 @@ namespace Engine
 
         public ReadFile(string path)
         {
-            //parser = new Parser(path + "\\stop_words.txt");
             CompiledRegex = new Regex(Regex.Escape("<DOCNO>") + "(.*?)" + Regex.Escape("</TEXT>"),RegexOptions.Singleline );
             filesPaths = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);       
         }

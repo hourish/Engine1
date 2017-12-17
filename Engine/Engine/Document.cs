@@ -19,14 +19,6 @@ namespace Engine
             max_tf = 0;
             length = 0;
         }
-        public int GetMaxTF()
-        {
-            return max_tf;
-        }
-        public int GetLength()
-        {
-            return length;
-        }
         public void SetLength(int length)
         {
             this.length = length;
