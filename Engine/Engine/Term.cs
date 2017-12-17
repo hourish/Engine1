@@ -27,10 +27,10 @@ namespace Engine
                     {
                         if (j != positions.Count - 1)
                             res += positions[j] + ",";
-                        else
-                            res += positions[j] + "?";
+                       
                     }
-                    res += "_" + positions.Count + "=" + positions.Count; ;//tf
+                //res += "_" + positions.Count +"_"+ "=" + positions.Count; ;//tf
+                res += "_" + positions.Count + "_";
                 }
                 else
                     res = "";
@@ -85,6 +85,15 @@ namespace Engine
             {
                 return name;
             }
+        public int GetPositionCount()
+        {
+            int sum = 0;
+            for (int i=0; i< details.Count();i++)
+            {
+                sum += details.ElementAt(i).Value.Count;
+            }
+            return sum;
+        }
 
         }
     }       
