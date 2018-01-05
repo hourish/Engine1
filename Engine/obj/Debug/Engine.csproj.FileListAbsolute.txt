@@ -16,3 +16,12 @@ C:\Users\hourish\Downloads\Engine\Engine\obj\Debug\Engine.Properties.Resources.r
 C:\Users\hourish\Downloads\Engine\Engine\obj\Debug\Engine.csproj.GenerateResource.Cache
 C:\Users\hourish\Downloads\Engine\Engine\obj\Debug\Engine.exe
 C:\Users\hourish\Downloads\Engine\Engine\obj\Debug\Engine.pdb
+d:\documents\users\elshac\Documents\GitHub\Engine1\Engine\bin\Debug\Engine.exe.config
+d:\documents\users\elshac\Documents\GitHub\Engine1\Engine\bin\Debug\Engine.exe
+d:\documents\users\elshac\Documents\GitHub\Engine1\Engine\bin\Debug\Engine.pdb
+d:\documents\users\elshac\Documents\GitHub\Engine1\Engine\obj\Debug\Engine.csprojResolveAssemblyReference.cache
+d:\documents\users\elshac\Documents\GitHub\Engine1\Engine\obj\Debug\Engine.Poodle.resources
+d:\documents\users\elshac\Documents\GitHub\Engine1\Engine\obj\Debug\Engine.Properties.Resources.resources
+d:\documents\users\elshac\Documents\GitHub\Engine1\Engine\obj\Debug\Engine.csproj.GenerateResource.Cache
+d:\documents\users\elshac\Documents\GitHub\Engine1\Engine\obj\Debug\Engine.exe
+d:\documents\users\elshac\Documents\GitHub\Engine1\Engine\obj\Debug\Engine.pdb
