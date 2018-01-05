@@ -55,9 +55,6 @@ namespace Engine
                         i++;
                     //DocDate
                     currentWord = words[i];
-                    int sx = 0;
-                    if (DOCNO.Equals("LA010189-0001"))
-                     sx = 7;
                     int day = 0, year = 0;
                     string month = "";
                     while (!currentWord.Contains("</DATE"))
@@ -96,6 +93,27 @@ namespace Engine
                             }
                         }
                         currentWord = words[++i];
+                        int tmpStart = 0;
+                        int tmpEnd = currentWord.Length;
+                        if(!currentWord.Equals(""))
+                        {
+                            while (signs.Contains(currentWord[tmpStart]))
+                            {
+                                tmpStart++;
+                                if (tmpStart == currentWord.Length)
+                                    break;
+                            }
+                            while(signs.Contains(currentWord[tmpEnd - 1]))
+                            {
+                                tmpEnd--;
+                                if(tmpEnd == 0)
+                                    break;
+                            }
+                        }
+                        if(tmpStart != 0)
+                            currentWord = currentWord.Substring(tmpStart);
+                        if(tmpEnd != currentWord.Length)
+                            currentWord = currentWord.Substring(0, tmpEnd);
                     }
                     currentDoc.SetDate(DateToString(day, month, year));
                     if (currentWord == "" || stopWords.Contains(currentWord)) // if empty line or stopWord

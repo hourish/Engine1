@@ -363,14 +363,14 @@ namespace Engine
             if (!stem)
             {
                 string pathPosting = finalPath + "/Numbers posting";//default
-                StreamWriter final_posting = new StreamWriter(pathPosting);
+                FileStream  final_posting = new FileStream (pathPosting, FileMode.Append, FileAccess.Write);
                 List<char> letters = new List<char> { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' };
                 Posting(final_posting, file1, file2, '0', "Numbers Posting");
                 final_posting.Close();
                 for (int i = 0; i < 26; i++)
                 {
                     pathPosting = finalPath + "/" + letters[i] + "posting";
-                    final_posting = new StreamWriter(pathPosting);
+                    final_posting = new FileStream (pathPosting, FileMode.Append, FileAccess.Write);
                     Posting(final_posting, file1, file2, char.ToLower(letters[i]), letters[i] + "Posting");
                     final_posting.Close();
                 }
@@ -379,14 +379,14 @@ namespace Engine
             else
             {
                 string pathPosting = finalPath + "/Numbers postingSTM";//default
-                StreamWriter final_posting = new StreamWriter(pathPosting);
+                FileStream  final_posting = new FileStream (pathPosting, FileMode.Append, FileAccess.Write);
                 List<char> letters = new List<char> { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' };
                 Posting(final_posting, file1, file2, '0', "Numbers PostingSTM");
                 final_posting.Close();
                 for (int i = 0; i < 26; i++)
                 {
                     pathPosting = finalPath + "/" + letters[i] + "postingSTM";
-                    final_posting = new StreamWriter(pathPosting);
+                    final_posting = new FileStream (pathPosting, FileMode.Append, FileAccess.Write);
                     Posting(final_posting, file1, file2, char.ToLower(letters[i]), letters[i] + "PostingSTM");
                     final_posting.Close();
                 }
@@ -403,8 +403,9 @@ namespace Engine
         /// <param name="file2"></param>
         /// <param name="topic"></param>
         /// <param name="name"></param>
-        private void Posting(StreamWriter final_posting, StreamReader file1, StreamReader file2, char topic, string name)
+        private void Posting(FileStream final_posting, StreamReader file1, StreamReader file2, char topic, string name)
         {
+            BinaryWriter bw = new BinaryWriter(final_posting);
             string line1;
             string line2;
             StringBuilder term1 = new StringBuilder();
@@ -446,7 +447,7 @@ namespace Engine
                 lineToWrite.Clear();
                 if (term1.ToString().CompareTo(term2.ToString()) < 0)
                 {
-                    lineToWrite.Append(line1.Substring(line1.IndexOf("|") + 1));//replace??
+                    lineToWrite.Append(line1.Substring(line1.IndexOf("|") + 1));
                     sb = new StringBuilder(term1.ToString());
                     if ((line1 = file1.ReadLine()) != null)
                     {
@@ -580,23 +581,22 @@ namespace Engine
                         filesAmount++;
                     }
                 }
-                string[] termDetails = new string[4];// termDetails[0]= df, termDetails[1]= name of final postnig file,  termDetails[2]= position in the posting file
+                string[] termDetails = new string[4];//termDetails[0] = total tf termDetails[1]= df, termDetails[2]= name of final postnig file,  termDetails[3]= position in the posting file
                 termDetails[0] = sum.ToString();
                 termDetails[1] = filesAmount.ToString();
                 termDetails[2] = name;
-                termDetails[3] = final_posting.BaseStream.Position.ToString();
+                termDetails[3] = bw.BaseStream.Position.ToString();
                 if (sum > 2)
                 {
-                    string temp = sb.ToString();
-                    if (sb.ToString().Contains('�'))//לבדוק
+                    if (term1.ToString().Contains('�'))//לבדוק
                         continue;                   
                    if (!finalDic.ContainsKey(sb.ToString()))
                     {
-                        final_posting.WriteLine(lineToWrite.ToString());
+                        //converting the text to byte array .
+                        byte[] arr = System.Text.Encoding.ASCII.GetBytes(sb.ToString() + lineToWrite.ToString() + "\n");
+                        bw.Write(arr);
                         finalDic.Add(sb.ToString(), termDetails);
                     }
-                    else
-                        Console.WriteLine(sb.ToString());
                  }
             }//while 
             if (!(file1.EndOfStream) && !(file2.EndOfStream))
@@ -621,23 +621,22 @@ namespace Engine
                             filesAmount++;
                         }
                     }
-                    string[] termDetails = new string[4];// termDetails[0]= df, termDetails[1]= name of final postnig file,  termDetails[2]= position in the posting file
+                    string[] termDetails = new string[4];//termDetails[0] = total tf termDetails[1]= df, termDetails[2]= name of final postnig file,  termDetails[3]= position in the posting file
                     termDetails[0] = sum.ToString();
                     termDetails[1] = filesAmount.ToString();
                     termDetails[2] = name;
-                    termDetails[3] = final_posting.BaseStream.Position.ToString();
+                    termDetails[3] = bw.BaseStream.Position.ToString();
                     if (sum > 2)
                     {
-                        string temp = term1.ToString();
                         if (term1.ToString().Contains('�'))
                             continue;                       
                         if (!finalDic.ContainsKey(term1.ToString()))
                         {
-                            final_posting.WriteLine(lineToWrite.ToString());
+                            //converting the text to byte array .
+                            byte[] arr = System.Text.Encoding.ASCII.GetBytes(lineToWrite.ToString() + "\n");
+                            bw.Write(arr);
                             finalDic.Add(term1.ToString(), termDetails);
-                        }
-                        else
-                            Console.WriteLine(sb.ToString());        
+                        }       
                     }
                     if ((line1 = file1.ReadLine()) != null)
                     {
@@ -684,20 +683,18 @@ namespace Engine
                     termDetails[0] = sum.ToString();
                     termDetails[1] = filesAmount.ToString();
                     termDetails[2] = name;
-                    termDetails[3] = final_posting.BaseStream.Position.ToString();
+                    termDetails[3] = bw.BaseStream.Position.ToString();
                     if (sum > 2)
                     {
-                        string temp = term2.ToString();
                         if (term2.ToString().Contains('�'))
-                            continue;
-                       
+                            continue;                      
                         if (!finalDic.ContainsKey(term2.ToString()))
                         {
-                            final_posting.WriteLine(lineToWrite.ToString());
-                            finalDic.Add(term2.ToString(), termDetails);
-                        }
-                        else
-                            Console.WriteLine(sb.ToString());                    
+                          //converting the text to byte array .
+                          byte[] arr = System.Text.Encoding.ASCII.GetBytes(lineToWrite.ToString() + "\n");
+                          bw.Write(arr);
+                          finalDic.Add(term2.ToString(), termDetails);
+                        }                 
                     }
                     
                     if ((line2 = file2.ReadLine()) != null)
@@ -748,21 +745,19 @@ namespace Engine
                     termDetails[0] = sum.ToString();
                     termDetails[1] = filesAmount.ToString();
                     termDetails[2] = name;
-                    termDetails[3] = final_posting.BaseStream.Position.ToString();
+                    termDetails[3] = bw.BaseStream.Position.ToString();
                     if (sum > 2)
                     {
-                        string temp = term1.ToString();
                         if (term1.ToString().Contains('�'))
-                            continue;
-                        
-                        if (!finalDic.ContainsKey(sb.ToString()))
+                            continue;                       
+                        if (!finalDic.ContainsKey(term1.ToString()))
                         {
-                            final_posting.WriteLine(lineToWrite.ToString());
+                            //converting the text to byte array .
+                            byte[] arr = System.Text.Encoding.ASCII.GetBytes(lineToWrite.ToString() + "\n");
+                            bw.Write(arr);
                             finalDic.Add(term1.ToString(), termDetails);
                         }
-                        else
-                            Console.WriteLine(sb.ToString());
-                        
+                       
                     }
                    
                     if ((line1 = file1.ReadLine()) != null)
@@ -811,19 +806,18 @@ namespace Engine
                     termDetails[0] = sum.ToString();
                     termDetails[1] = filesAmount.ToString();
                     termDetails[2] = name;
-                    termDetails[3] = final_posting.BaseStream.Position.ToString();
+                    termDetails[3] = bw.BaseStream.Position.ToString();
                     if (sum > 2)
                     {
-                        string temp = term2.ToString();
                         if (term2.ToString().Contains('�'))
                             continue;               
                         if (!finalDic.ContainsKey(term2.ToString()))
                         {
-                            final_posting.WriteLine(lineToWrite.ToString());
+                            //converting the text to byte array .
+                            byte[] arr = System.Text.Encoding.ASCII.GetBytes(lineToWrite.ToString() + "\n");
+                            bw.Write(arr);
                             finalDic.Add(term2.ToString(), termDetails);
-                        }
-                        else
-                            Console.WriteLine(sb.ToString());                     
+                        }                   
                     }                  
                     if ((line1 = file1.ReadLine()) != null)
                     {
@@ -842,6 +836,7 @@ namespace Engine
                     }
                 }
             }
+            bw.Close();
         }
         /// <summary>
         /// check if the word belong to some topic, if the first lleter in the word belong to the topic

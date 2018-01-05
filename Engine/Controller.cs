@@ -123,18 +123,44 @@ namespace Engine
             }
             theDictionary = indexer.GetFinalDic();
             //cach
+       /*     string path1 = finalPath + "\\Poodle_Dictionary";
+            StreamReader file1 = new StreamReader(path1);
+            while (!file1.EndOfStream)
+            {
+                string line = file1.ReadLine();
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < line.IndexOf("total tf:") - 1; i++)
+                {
+                    sb.Append(line[i]);
+                }
+                string name = sb.ToString();
+                String[] details = new string[4];
+                int count1 = 0;
+                for (int i = line.IndexOf("total tf:") + 10; i < line.Length; i++)
+                {
+                    if (line[i] != '~')
+                        sb.Append(line[i]);
+                    else
+                    {
+                        details[count1] = sb.ToString();
+                        sb.Clear();
+                    }
+
+                }
+                //  string[] data = line.Split('~');
+                // String[] details = { data[1], data[2], data[3], data[4] };
+                theDictionary.Add(name, details);
+            }*/
+
             List<KeyValuePair<string, string[]>> tempDic = theDictionary.ToList();
             tempDic = tempDic.OrderByDescending(a => Int32.Parse(a.Value[0])).ToList();//sort by max tf
             for (int i = 0; i < 10000; i++)
             {
                 string pathtToPosting = Path.Combine(finalPath, theDictionary[tempDic[i].Key][2]);
                 FileStream fs = new FileStream(pathtToPosting, FileMode.Open, FileAccess.Read);
-                UTF8Encoding utf8 = new UTF8Encoding();
-                BinaryReader br = new BinaryReader(fs, utf8);
-                br.BaseStream.Seek(int.Parse(theDictionary[tempDic[i].Key][3]), SeekOrigin.Begin);
-                BufferedStream bs = new BufferedStream(fs);
-                StreamReader sr = new StreamReader(bs);
-                cache.Add(tempDic[i].Key, sr.ReadLine());
+                BinaryReader br = new BinaryReader(fs);
+                br.BaseStream.Seek(Int64.Parse(theDictionary[tempDic[i].Key][3]), SeekOrigin.Begin);
+                cache.Add(tempDic[i].Key, ReadLine(br));
             }
             tempDic.Clear();
             Save(finalPath, stem);
@@ -257,7 +283,7 @@ namespace Engine
             StreamWriter saveDocs = new StreamWriter(pathDoc);
             for (int i = 0; i < theDictionary.Count; i++)
             {
-                saveDictionery.WriteLine(tempTermList[i] + " total tf:" + theDictionary[tempTermList[i]][0] + "" + theDictionary[tempTermList[i]][1] + "~" + theDictionary[tempTermList[i]][2] + "~" + theDictionary[tempTermList[i]][3]);
+                saveDictionery.WriteLine(tempTermList[i] + " total tf:" + theDictionary[tempTermList[i]][0] + "~" + theDictionary[tempTermList[i]][1] + "~" + theDictionary[tempTermList[i]][2] + "~" + theDictionary[tempTermList[i]][3]);
             }
             for (int i = 0; i < cache.Count; i++)
             {
@@ -358,8 +384,6 @@ namespace Engine
                     }
 
                 }
-                //  string[] data = line.Split('~');
-                // String[] details = { data[1], data[2], data[3], data[4] };
                 theDictionary.Add(name, details);
             }
             while (!file2.EndOfStream)
@@ -371,7 +395,7 @@ namespace Engine
             while (!file3.EndOfStream)
             {
                 string line = file3.ReadLine();
-                string[] data = line.Split('~');
+                string[] data = line.Split(':');
                 if (data.Length != 4)
                     continue;
                 string[] details = { data[1], data[2], data[3] };
@@ -380,6 +404,67 @@ namespace Engine
             file1.Close();
             file2.Close();
             file3.Close();
+            
+            // public void CreatWdoc(string path)
+            List<char> letters = new List<char> { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' };
+            string[] read = new string[27];
+          //  StreamReader[] readStm = new StreamReader[27];
+            read[0] = path + "/Numbers posting";
+           // readStm[0] = new StreamReader(path + "/Numbers postingSTM");
+            string path22 = path + "/WeightDocs";
+            StreamWriter docWeightFile = new StreamWriter(path22); 
+            StringBuilder stringtf = new StringBuilder();
+            for (int i = 1; i < read.Length; i++)
+            {
+                read[i] = (path + "/" + letters[i-1] + "posting");
+               // readStm[i] = new StreamReader(path + "/" + letters[i-1] + "postingSTM");
+            }
+            List<string> docsName = DocDictionary.Keys.ToList();
+            for (int d = 0; d < DocDictionary.Count; d++)// going through all documents 
+            {
+                string documentName = docsName[d];
+                double weightSquare = 0; // the sigma of the squer of the weights 
+                for (int i = 0; i < read.Length; i++) // for each document going through all the posting files 
+                {
+                    StreamReader sr = new StreamReader(read[i]);
+                    while (!sr.EndOfStream) // going throgh all the lines in spacific posting file 
+                    {
+                        string line = sr.ReadLine();
+                        int index = line.IndexOf(documentName);// the position of the first letter of the document name 
+                        if (index != -1) //if the term apear in the document
+                        {
+                            index = line.IndexOf('_', index + documentName.Length);
+                            index++;
+                            while (!line[index].Equals('_'))// saving in sb the amount of time the term oppear in the file 
+                            {
+                                stringtf.Append(line[index]);
+                                index++;
+                            }
+                            double tf = Int32.Parse(stringtf.ToString());
+                            double length = int.Parse(DocDictionary[documentName][1]);
+                            stringtf.Clear();
+                            int dotIndex = line.IndexOf(':');
+                            double df= 0;
+                            while (dotIndex != -1)// count in how many fiels the term apear
+                            {
+                                df++;
+                                if (dotIndex + 1 < line.Length)
+                                    dotIndex = line.IndexOf(':', dotIndex + 1);
+                                else
+                                    break;
+                            }
+                            double tfMenurmal  = tf / length;
+                            double idf = Math.Log(((double)DocDictionary.Count / df), 2);
+                            double wordWeight = tfMenurmal * idf;
+                            weightSquare += Math.Pow(wordWeight, 2);
+                        }
+                    }
+                    sr.Close();
+                }
+                docWeightFile.WriteLine(documentName + ":" + weightSquare);
+                docWeightFile.Flush();
+            }
+            docWeightFile.Close();
         }
 
         public int GetNumOfDocs()
@@ -405,6 +490,40 @@ namespace Engine
             }
             else
                 return "\\Poodle_Cache";
+        }
+
+        private string ReadLine(BinaryReader reader)
+        {
+            var result = new StringBuilder();
+            bool foundEndOfLine = false;
+            char ch;
+            while (!foundEndOfLine)
+            {
+                try
+                {
+                    ch = reader.ReadChar();
+                }
+                catch (EndOfStreamException ex)
+                {
+                    if (result.Length == 0) return null;
+                    else break;
+                }
+                
+                switch (ch)
+                {
+                    case '\r':
+                        if (reader.PeekChar() == '\n') reader.ReadChar();
+                        foundEndOfLine = true;
+                        break;
+                    case '\n':
+                        foundEndOfLine = true;
+                        break;
+                    default:
+                        result.Append(ch);
+                        break;
+                }
+            }
+            return result.ToString();
         }
     }
 }

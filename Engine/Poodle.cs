@@ -96,7 +96,6 @@ namespace Engine
             TimeSpan ts = sw.Elapsed;
             MessageBox.Show("Number of indexed document: " + c.GetNumOfDocs() + " size of the index in bytes " + c.SizeOfIndex(finalPath, stem).ToString()
                + " Total running time is " + ts.TotalSeconds + " seconds");
-            MessageBox.Show("Done Indexing!");
             saveButton.Enabled = true;
             cacheButton.Enabled = true;
             dictionaryButton.Enabled = true;
