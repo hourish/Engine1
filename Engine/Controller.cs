@@ -399,7 +399,7 @@ namespace Engine
                 string[] data = line.Split(':');
                 if (data.Length != 4)
                     continue;
-                string[] details = { data[1], data[2], data[3] };
+                string[] details = { data[1], data[2], data[3] , ""};
                 DocDictionary.Add(data[0], details);
             }
             file1.Close();
@@ -465,11 +465,8 @@ namespace Engine
                     sr.Close();
                 }
                 DocDictionary[documentName][3] = bw.BaseStream.Position.ToString();
-                byte[] arr2 = System.Text.Encoding.ASCII.GetBytes("a");
-                byte[] arr = Encoding.ASCII.GetBytes(documentName + ":");
-                byte[] arr1 = Encoding.ASCII.GetBytes(weightSquare + "\n");
+                byte[] arr = Encoding.ASCII.GetBytes(documentName + ":" + weightSquare + "\n");
                 bw.Write(arr);
-                bw.Write(arr1);
             }
             bw.Close();
         }
