@@ -588,12 +588,12 @@ namespace Engine
                 termDetails[3] = bw.BaseStream.Position.ToString();
                 if (sum > 2)
                 {
-                    if (term1.ToString().Contains('�'))//לבדוק
+                    if (term1.ToString().Contains('�'))
                         continue;                   
                    if (!finalDic.ContainsKey(sb.ToString()))
                     {
                         //converting the text to byte array .
-                        byte[] arr = System.Text.Encoding.ASCII.GetBytes(sb.ToString() + lineToWrite.ToString() + "\n");
+                        byte[] arr = Encoding.ASCII.GetBytes(sb.ToString() + lineToWrite.ToString() + "\n");
                         bw.Write(arr);
                         finalDic.Add(sb.ToString(), termDetails);
                     }
@@ -633,7 +633,7 @@ namespace Engine
                         if (!finalDic.ContainsKey(term1.ToString()))
                         {
                             //converting the text to byte array .
-                            byte[] arr = System.Text.Encoding.ASCII.GetBytes(lineToWrite.ToString() + "\n");
+                            byte[] arr = Encoding.ASCII.GetBytes(lineToWrite.ToString() + "\n");
                             bw.Write(arr);
                             finalDic.Add(term1.ToString(), termDetails);
                         }       
@@ -691,7 +691,7 @@ namespace Engine
                         if (!finalDic.ContainsKey(term2.ToString()))
                         {
                           //converting the text to byte array .
-                          byte[] arr = System.Text.Encoding.ASCII.GetBytes(lineToWrite.ToString() + "\n");
+                          byte[] arr = Encoding.ASCII.GetBytes(lineToWrite.ToString() + "\n");
                           bw.Write(arr);
                           finalDic.Add(term2.ToString(), termDetails);
                         }                 
@@ -753,7 +753,7 @@ namespace Engine
                         if (!finalDic.ContainsKey(term1.ToString()))
                         {
                             //converting the text to byte array .
-                            byte[] arr = System.Text.Encoding.ASCII.GetBytes(lineToWrite.ToString() + "\n");
+                            byte[] arr = Encoding.ASCII.GetBytes(lineToWrite.ToString() + "\n");
                             bw.Write(arr);
                             finalDic.Add(term1.ToString(), termDetails);
                         }

@@ -20,6 +20,8 @@ namespace Engine
         private Button LoadButton = new Button();
         private Button cacheButton = new Button();
         private Button dictionaryButton = new Button();
+        private Button runButton = new Button();
+        private CheckBox extend = new CheckBox();
         private CheckBox isStem = new CheckBox();
         Controller c = new Controller();
         string CorpusPath = "";
@@ -27,13 +29,14 @@ namespace Engine
         string savePath = "";
         bool stem = false;
         bool fromFinal = false;
+        string query = "";
 
         public Poodle()
         {
             InitializeComponent();
         }
 
-        private void textBox1_TextChanged(object sender, EventArgs e)
+        private void textBox1_TextChanged(object sender, EventArgs e)//corpus path
         {
             FolderBrowserDialog folderBrowserDialog1 = new FolderBrowserDialog();
             if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
@@ -46,7 +49,7 @@ namespace Engine
             }
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void button2_Click(object sender, EventArgs e)//browse posting
         {
             FolderBrowserDialog folderBrowserDialog1 = new FolderBrowserDialog();
             if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
@@ -59,7 +62,7 @@ namespace Engine
             }
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void button1_Click(object sender, EventArgs e)//browse corpus
         {
                FolderBrowserDialog folderBrowserDialog1 = new FolderBrowserDialog();
                if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
@@ -72,7 +75,7 @@ namespace Engine
                 }
         }
        
-        private void textBox2_TextChanged(object sender, EventArgs e)
+        private void textBox2_TextChanged(object sender, EventArgs e)//posting path
         {
             FolderBrowserDialog folderBrowserDialog1 = new FolderBrowserDialog();
             if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
@@ -127,7 +130,7 @@ namespace Engine
             fromFinal = false;
         }
 
-        private void LoadButton_Click(object sender, EventArgs e)
+        private void LoadButton_Click(object sender, EventArgs e)//load dictionary and cache
         {
             MessageBox.Show("Loading...");
             string loadPath = "";
@@ -170,6 +173,53 @@ namespace Engine
             {
                 Process.Start("notepad.exe", savePath + c.GetDicPath(stem));
             }
+        }
+
+        private void textBox3_TextChanged(object sender, EventArgs e)//fill query
+        {
+            TextBox objTextBox = (TextBox)sender;
+            string theText = objTextBox.Text;
+            query = theText;
+            if (!query.Equals(""))
+                runButton.Enabled = true;
+            else
+            {
+                runButton.Enabled = false;
+            }
+            if (!query.Contains(" ") && !query.Equals(""))
+                extend.Enabled = true;
+            else
+                extend.Enabled = false;
+        }
+
+        private void button1_Click_3(object sender, EventArgs e)//run
+        {
+            string queryText = query;
+            c.RunQuery(queryText);
+        }
+
+        private void button2_Click_1(object sender, EventArgs e)//load file of qureis
+        {
+            FolderBrowserDialog folderBrowserDialog1 = new FolderBrowserDialog();
+            if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
+            {
+                //finalPath = folderBrowserDialog1.SelectedPath;
+            }
+        }
+
+        private void checkBox1_CheckedChanged_1(object sender, EventArgs e)//extend
+        {
+
+        }
+
+        private void checkBox1_CheckedChanged_2(object sender, EventArgs e)//summarize
+        {
+            string nameOfDoc = query;
+        }
+
+        private void button1_Click_4(object sender, EventArgs e)//reset
+        {
+
         }
     }
 }

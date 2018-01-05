@@ -71,10 +71,11 @@ namespace Engine
                     }
                     currentDoc.SetMaxTF(max);
                     currentDoc.SetLength(terms.Length);
-                    string[] details = new string[3];
+                    string[] details = new string[4];
                     details[0] = currentDoc.GetMaxTfString();
                     details[1] = currentDoc.GetLengthString();
                     details[2] = currentDoc.GetDateString();
+                    details[3] = "";
                     DocDictionary.Add(currentDoc.GetName(), details);
                     matchTEXT = matchTEXT.NextMatch();
                 }
@@ -412,7 +413,8 @@ namespace Engine
             read[0] = path + "/Numbers posting";
            // readStm[0] = new StreamReader(path + "/Numbers postingSTM");
             string path22 = path + "/WeightDocs";
-            StreamWriter docWeightFile = new StreamWriter(path22); 
+            FileStream fs = new FileStream(path22, FileMode.Append, FileAccess.Write);
+            BinaryWriter bw = new BinaryWriter(fs);
             StringBuilder stringtf = new StringBuilder();
             for (int i = 1; i < read.Length; i++)
             {
@@ -457,14 +459,19 @@ namespace Engine
                             double idf = Math.Log(((double)DocDictionary.Count / df), 2);
                             double wordWeight = tfMenurmal * idf;
                             weightSquare += Math.Pow(wordWeight, 2);
+                            weightSquare = Math.Round(weightSquare, 3);
                         }
                     }
                     sr.Close();
                 }
-                docWeightFile.WriteLine(documentName + ":" + weightSquare);
-                docWeightFile.Flush();
+                DocDictionary[documentName][3] = bw.BaseStream.Position.ToString();
+                byte[] arr2 = System.Text.Encoding.ASCII.GetBytes("a");
+                byte[] arr = Encoding.ASCII.GetBytes(documentName + ":");
+                byte[] arr1 = Encoding.ASCII.GetBytes(weightSquare + "\n");
+                bw.Write(arr);
+                bw.Write(arr1);
             }
-            docWeightFile.Close();
+            bw.Close();
         }
 
         public int GetNumOfDocs()
@@ -491,7 +498,11 @@ namespace Engine
             else
                 return "\\Poodle_Cache";
         }
-
+        /// <summary>
+        /// function from the internet that read line with binary reader
+        /// </summary>
+        /// <param name="reader"></param>
+        /// <returns></returns>
         private string ReadLine(BinaryReader reader)
         {
             var result = new StringBuilder();
@@ -524,6 +535,11 @@ namespace Engine
                 }
             }
             return result.ToString();
+        }
+
+        public void RunQuery(string query)
+        {
+
         }
     }
 }
